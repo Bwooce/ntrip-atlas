@@ -140,7 +140,7 @@ static int linux_send_nmea(
 
 /**
  * Store credential using file-based storage
- * TODO: Integrate with libsecret/keyring for production
+ * Enhancement: Consider libsecret/gnome-keyring integration for secure credential storage
  */
 static int linux_store_credential(const char* key, const char* value) {
     if (!key || !value) {

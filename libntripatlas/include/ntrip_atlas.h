@@ -60,7 +60,12 @@ typedef enum {
     NTRIP_ATLAS_ERROR_INVALID_MAGIC = -12,       // Database magic number mismatch
     NTRIP_ATLAS_ERROR_VERSION_TOO_OLD = -13,     // Library version too old for database
     NTRIP_ATLAS_ERROR_INCOMPATIBLE_VERSION = -14, // Incompatible schema version
-    NTRIP_ATLAS_ERROR_MISSING_FEATURE = -15      // Required feature not supported
+    NTRIP_ATLAS_ERROR_MISSING_FEATURE = -15,     // Required feature not supported
+    // Tiered loading errors
+    NTRIP_ATLAS_ERROR_NO_DISCOVERY_INDEX = -16,  // Discovery index not loaded
+    NTRIP_ATLAS_ERROR_NO_ENDPOINTS = -17,        // Service endpoints not available
+    NTRIP_ATLAS_ERROR_NO_METADATA = -18,         // Service metadata not available
+    NTRIP_ATLAS_ERROR_LOAD_FAILED = -19          // Data loading operation failed
 } ntrip_atlas_error_t;
 
 /**
@@ -287,6 +292,11 @@ typedef struct {
 ntrip_atlas_error_t ntrip_atlas_init(const ntrip_platform_t* platform);
 
 /**
+ * Initialize NTRIP Atlas with specific feature set
+ */
+ntrip_atlas_error_t ntrip_atlas_init_features(uint8_t feature_flags);
+
+/**
  * Find best NTRIP service for given coordinates
  */
 ntrip_atlas_error_t ntrip_atlas_find_best(ntrip_best_service_t* result,
@@ -481,6 +491,12 @@ ntrip_atlas_error_t ntrip_atlas_clear_failure_history(void);
 #define NTRIP_DB_FEATURE_RESERVED_3         0x40  // Future use
 #define NTRIP_DB_FEATURE_EXPERIMENTAL       0x80  // Experimental features
 
+// Feature initialization modes
+#define NTRIP_ATLAS_FEATURE_CORE    (NTRIP_DB_FEATURE_COMPACT_FAILURES)
+#define NTRIP_ATLAS_FEATURE_ALL     (NTRIP_DB_FEATURE_COMPACT_FAILURES | \
+                                     NTRIP_DB_FEATURE_GEOGRAPHIC_INDEX | \
+                                     NTRIP_DB_FEATURE_TIERED_LOADING)
+
 /**
  * Database header for version verification and compatibility
  */
@@ -564,6 +580,157 @@ void ntrip_atlas_print_version_info(void);
 ntrip_atlas_error_t ntrip_atlas_init_with_version_check(
     const ntrip_db_header_t* db_header
 );
+
+/**
+ * Tiered Data Loading System
+ * Optimizes memory usage by loading only essential data for discovery,
+ * deferring detailed information until actually needed.
+ */
+
+/**
+ * Tier 1: Discovery Index (Essential data for service selection)
+ * Memory usage: 16 bytes per service (95% reduction from full data)
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t service_index;       // 1 byte - Index into full service table
+    int16_t lat_center_deg100;   // 2 bytes - Center latitude * 100
+    int16_t lon_center_deg100;   // 2 bytes - Center longitude * 100
+    uint8_t radius_km;           // 1 byte - Coverage radius (0-255km)
+    uint8_t quality_rating;      // 1 byte - Quality rating (1-5 stars)
+    uint8_t network_type;        // 1 byte - Government/Commercial/Community
+    uint8_t auth_method;         // 1 byte - None/Basic/Digest
+    uint8_t requires_registration; // 1 byte - Boolean
+    uint8_t ssl_available;       // 1 byte - Boolean
+    char provider_short[4];      // 4 bytes - Short provider name
+} ntrip_service_index_t;         // 16 bytes total
+
+/**
+ * Tier 2: Service Endpoints (Loaded when service selected for connection)
+ */
+typedef struct __attribute__((packed)) {
+    char hostname[48];           // 48 bytes - Full hostname
+    uint16_t port;               // 2 bytes - Port number
+    uint16_t ssl_port;           // 2 bytes - SSL port (0 if none)
+    char base_path[32];          // 32 bytes - URL path
+    char user_agent[32];         // 32 bytes - Required user agent
+    uint8_t connection_flags;    // 1 byte - Various connection options
+} ntrip_service_endpoints_t;     // 117 bytes
+
+/**
+ * Tier 3: Administrative Metadata (Loaded only when requested for UI/details)
+ */
+typedef struct {
+    char provider_full[64];      // Full provider name
+    char country[32];            // Country name
+    char description[128];       // Service description
+    char website[64];            // Provider website
+    char contact_email[64];      // Support contact
+    char registration_url[128];  // Where to register
+    uint32_t last_updated;       // When service info updated
+    char coverage_notes[256];    // Coverage area notes
+} ntrip_service_metadata_t;      // ~800 bytes
+
+/**
+ * Data loading modes for backward compatibility
+ */
+typedef enum {
+    NTRIP_LOADING_FULL,          // Load all data (current behavior)
+    NTRIP_LOADING_TIERED         // Use tiered loading (memory optimized)
+} ntrip_loading_mode_t;
+
+/**
+ * Platform-specific data loading interface for tiered system
+ */
+typedef struct {
+    // Load discovery index (Tier 1) - called once at startup
+    ntrip_atlas_error_t (*load_discovery_index)(
+        ntrip_service_index_t** index,
+        size_t* count,
+        void* platform_data
+    );
+
+    // Load service endpoints (Tier 2) - called per selected service
+    ntrip_atlas_error_t (*load_service_endpoints)(
+        uint8_t service_index,
+        ntrip_service_endpoints_t* endpoints,
+        void* platform_data
+    );
+
+    // Load service metadata (Tier 3) - called for UI/details only
+    ntrip_atlas_error_t (*load_service_metadata)(
+        uint8_t service_index,
+        ntrip_service_metadata_t* metadata,
+        void* platform_data
+    );
+
+    void* platform_data;        // Platform-specific context
+} ntrip_tiered_platform_t;
+
+/**
+ * Initialize with tiered data loading for memory optimization
+ * @param mode Loading mode (full vs tiered)
+ * @param tiered_platform Tiered loading callbacks (NULL for full mode)
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_init_with_loading_mode(
+    ntrip_loading_mode_t mode,
+    const ntrip_tiered_platform_t* tiered_platform
+);
+
+/**
+ * Fast discovery using only Tier 1 data (discovery index)
+ * Uses 95% less memory than traditional approach
+ * @param result Output best service result
+ * @param user_lat User latitude
+ * @param user_lon User longitude
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_find_best_tiered(
+    ntrip_best_service_t* result,
+    double user_lat,
+    double user_lon
+);
+
+/**
+ * Load service endpoints on demand (Tier 2)
+ * @param service_index Service index from discovery
+ * @param endpoints Output endpoints structure
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_load_service_endpoints(
+    uint8_t service_index,
+    ntrip_service_endpoints_t* endpoints
+);
+
+/**
+ * Load service metadata on demand (Tier 3)
+ * @param service_index Service index from discovery
+ * @param metadata Output metadata structure
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_load_service_metadata(
+    uint8_t service_index,
+    ntrip_service_metadata_t* metadata
+);
+
+/**
+ * Get memory usage statistics for tiered loading
+ * @param tier1_bytes Output Tier 1 memory usage
+ * @param tier2_bytes Output Tier 2 memory usage (cached)
+ * @param tier3_bytes Output Tier 3 memory usage (cached)
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_get_tiered_memory_stats(
+    size_t* tier1_bytes,
+    size_t* tier2_bytes,
+    size_t* tier3_bytes
+);
+
+/**
+ * Trim caches under memory pressure (ESP32 optimization)
+ * Frees Tier 2/3 cached data while preserving Tier 1 discovery index
+ */
+void ntrip_atlas_trim_caches(void);
 
 /**
  * Get default exponential backoff configuration

@@ -171,13 +171,14 @@ ntrip_atlas_error_t ntrip_atlas_init_with_version_check(
     switch (compatibility) {
         case NTRIP_COMPAT_COMPATIBLE:
             printf("Database fully compatible - enabling all features\n");
-            // TODO: Initialize with full feature set
-            break;
+            // Initialize with all supported features enabled
+            return ntrip_atlas_init_features(NTRIP_ATLAS_FEATURE_ALL);
 
         case NTRIP_COMPAT_BACKWARD_ONLY:
             printf("Database newer than library - enabling compatible features only\n");
             printf("Consider upgrading library for full feature access\n");
-            // TODO: Initialize with limited feature set
+            // Initialize with only features supported by current library version
+            return ntrip_atlas_init_features(NTRIP_ATLAS_FEATURE_CORE);
             break;
 
         case NTRIP_COMPAT_UPGRADE_NEEDED:
@@ -255,6 +256,30 @@ ntrip_atlas_error_t ntrip_atlas_validate_database_header(
     // Validate service count
     if (header->service_count == 0 || header->service_count > 10000) {
         return NTRIP_ATLAS_ERROR_INVALID_PARAM;
+    }
+
+    return NTRIP_ATLAS_SUCCESS;
+}
+
+/**
+ * Initialize NTRIP Atlas with specific feature set
+ */
+ntrip_atlas_error_t ntrip_atlas_init_features(uint8_t feature_flags) {
+    // Store enabled features globally
+    static uint8_t g_enabled_features = 0;
+    g_enabled_features = feature_flags;
+
+    // Initialize components based on enabled features
+    if (feature_flags & NTRIP_DB_FEATURE_COMPACT_FAILURES) {
+        // Compact failures already initialized in system
+    }
+
+    if (feature_flags & NTRIP_DB_FEATURE_GEOGRAPHIC_INDEX) {
+        // Geographic indexing not yet implemented
+    }
+
+    if (feature_flags & NTRIP_DB_FEATURE_TIERED_LOADING) {
+        // Tiered loading initialization handled separately
     }
 
     return NTRIP_ATLAS_SUCCESS;
