@@ -24,7 +24,10 @@ ntrip_services_data.c
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-Makefile
+# Generated Makefiles (but allow tests/Makefile)
+/Makefile
+build/Makefile
+*/build/Makefile
 *.xcodeproj/
 *.vcxproj*
 *.sln
