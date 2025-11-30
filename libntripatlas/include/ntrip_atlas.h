@@ -1079,6 +1079,99 @@ int ntrip_atlas_format_gga(
 const char* ntrip_atlas_get_version(void);
 
 /**
+ * Spatial Indexing System (O(1) Service Discovery)
+ * Based on Brad Fitzpatrick's latlong library adaptive grid optimization
+ */
+
+/**
+ * 32-bit tile key for hierarchical spatial indexing
+ * Bit layout: [level:3][reserved:3][lat_tile:13][lon_tile:13]
+ */
+typedef uint32_t ntrip_tile_key_t;
+
+/**
+ * Spatial index statistics
+ */
+typedef struct {
+    uint16_t total_tiles;
+    uint16_t populated_tiles;
+    uint16_t total_service_assignments;
+    uint16_t max_services_per_tile;
+    double average_services_per_tile;
+    size_t memory_used_bytes;
+} ntrip_spatial_index_stats_t;
+
+/**
+ * Encode tile coordinates into 32-bit key
+ */
+ntrip_tile_key_t ntrip_atlas_encode_tile_key(uint8_t level, uint16_t lat_tile, uint16_t lon_tile);
+
+/**
+ * Decode tile key into components
+ */
+void ntrip_atlas_decode_tile_key(ntrip_tile_key_t key, uint8_t* level, uint16_t* lat_tile, uint16_t* lon_tile);
+
+/**
+ * Convert lat/lon coordinates to tile coordinates for given zoom level
+ */
+ntrip_atlas_error_t ntrip_atlas_lat_lon_to_tile(
+    double lat,
+    double lon,
+    uint8_t level,
+    uint16_t* tile_lat,
+    uint16_t* tile_lon
+);
+
+/**
+ * Convert tile coordinates back to lat/lon bounds
+ */
+ntrip_atlas_error_t ntrip_atlas_tile_to_lat_lon_bounds(
+    uint8_t level,
+    uint16_t tile_lat,
+    uint16_t tile_lon,
+    double* lat_min,
+    double* lat_max,
+    double* lon_min,
+    double* lon_max
+);
+
+/**
+ * Initialize spatial index system
+ */
+ntrip_atlas_error_t ntrip_atlas_init_spatial_index(void);
+
+/**
+ * Add service to spatial tile (build-time operation)
+ */
+ntrip_atlas_error_t ntrip_atlas_add_service_to_tile(
+    ntrip_tile_key_t tile_key,
+    uint8_t service_index
+);
+
+/**
+ * Find services covering user location using spatial index
+ * O(1) lookup replacing O(n) linear scan
+ */
+size_t ntrip_atlas_find_services_by_location_fast(
+    double user_lat,
+    double user_lon,
+    uint8_t* service_indices,
+    size_t max_services
+);
+
+/**
+ * Get spatial index statistics
+ */
+ntrip_atlas_error_t ntrip_atlas_get_spatial_index_stats(
+    ntrip_spatial_index_stats_t* stats
+);
+
+/**
+ * Print spatial index debug information
+ */
+void ntrip_atlas_print_spatial_index_debug(void);
+
+/**
  * Get error description string
  */
 const char* ntrip_atlas_error_string(ntrip_atlas_error_t error);
