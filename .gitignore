@@ -1,0 +1,114 @@
+# NTRIP Atlas - Git Ignore File
+
+# Build artifacts and generated files
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+build/
+bin/
+obj/
+dist/
+*.dSYM/
+
+# Generated source files from YAML data
+libntripatlas/src/generated/
+*_generated.c
+*_generated.h
+ntrip_services_data.h
+ntrip_services_data.c
+
+# Platform-specific build files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.xcodeproj/
+*.vcxproj*
+*.sln
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Arduino IDE files
+*.ino.hex
+*.ino.elf
+*.ino.bin
+*.ino.map
+*.ino.partitions.bin
+
+# PlatformIO files
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# Testing and development files
+test_results/
+coverage/
+*.log
+debug.txt
+
+# Credentials and sensitive data
+credentials.txt
+*.key
+*.pem
+test_credentials/
+local_config.yaml
+
+# Package manager files
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Documentation build artifacts
+docs/_build/
+docs/html/
+*.pdf
+
+# Database validation artifacts
+validation_cache/
+sourcetable_cache/
+*.tmp
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Local development overrides
+local_settings.h
+debug_config.h
+test_services.yaml
+
+# Memory profiling and debugging
+valgrind.out
+*.heap
+*.prof
+
+# Release archives
+*.tar.gz
+*.zip
+releases/
+
+# Temporary service data during development
+temp_services/
+scratch/
