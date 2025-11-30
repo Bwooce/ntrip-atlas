@@ -16,6 +16,7 @@
 
 ## Complete Project Structure
 
+**Main Library Repository** ([ntrip-atlas](https://github.com/bruce/ntrip-atlas)):
 ```
 ntrip-atlas/                           # Root directory
 ├── README.md                          # Project overview and quick start
@@ -23,17 +24,6 @@ ntrip-atlas/                           # Root directory
 ├── PROJECT_SUMMARY.md                 # This document
 ├── LICENSING.md                       # Dual licensing explanation
 ├── LICENSE-CODE                       # MIT License for C library
-├── LICENSE-DATA                       # CC0 Public Domain for service data
-│
-├── data/                              # 🗺️ Community service database (CC0)
-│   ├── VERSION                        # Database version (YYYYMMDD.sequence format)
-│   ├── global/                        # Worldwide services
-│   │   └── rtk2go.yaml               # RTK2go community network
-│   ├── emea/                          # Europe, Middle East, Africa
-│   ├── apac/                          # Asia Pacific
-│   │   └── australia-ga.yaml         # Geoscience Australia government service
-│   ├── americas/                      # North and South America
-│   └── africa/                        # African regional services
 │
 ├── libntripatlas/                     # 💻 Core C library (MIT License)
 │   ├── include/                       # Public API headers
@@ -61,6 +51,27 @@ ntrip-atlas/                           # Root directory
     ├── api/                           # API reference documentation
     ├── tutorials/                     # Step-by-step guides
     └── specifications/                # Technical specifications
+```
+
+**Service Database Repository** ([ntrip-atlas-data](https://github.com/bruce/ntrip-atlas-data)):
+```
+ntrip-atlas-data/                      # Service database repository
+├── README.md                          # Community contribution guidelines
+├── LICENSE-DATA                       # CC0 Public Domain license
+│
+├── data/                              # 🗺️ Community service database (CC0)
+│   ├── VERSION                        # Database version (YYYYMMDD.sequence format)
+│   ├── global/                        # Worldwide services
+│   │   ├── rtk2go.yaml               # RTK2go community network
+│   │   └── pointone-polaris.yaml     # Point One Navigation commercial service
+│   ├── emea/                          # Europe, Middle East, Africa
+│   │   ├── euref-ip.yaml             # European government network
+│   │   └── finland-finnref.yaml     # Finnish government service
+│   ├── apac/                          # Asia Pacific
+│   │   └── australia-ga.yaml         # Geoscience Australia government service
+│   ├── americas/                      # North and South America
+│   │   └── usa-massachusetts-macors.yaml # Massachusetts state network
+│   └── africa/                        # African regional services (empty currently)
 ```
 
 ## Key Design Decisions

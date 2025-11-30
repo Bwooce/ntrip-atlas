@@ -100,32 +100,41 @@ int main() {
 
 ## Project Structure
 
+**Main Library Repository** (this repository):
 ```
 ntrip-atlas/
-├── data/                      # Community-maintained service database
-│   ├── global/               # Worldwide services (RTK2go, IGS)
-│   ├── emea/                 # Europe, Middle East, Africa
-│   ├── apac/                 # Asia Pacific
-│   ├── americas/             # North and South America
-│   └── africa/               # African regional services
 ├── libntripatlas/            # Core C library
 │   ├── src/                  # Platform-agnostic core
 │   ├── include/              # Public API headers
 │   ├── platforms/            # Platform-specific implementations
 │   └── examples/             # Usage examples
 ├── tools/                    # Development and maintenance tools
+├── tests/                    # Unit and integration tests
 ├── docs/                     # Documentation and specifications
 └── README.md                 # This file
+```
+
+**Service Database Repository** (separate repository: [ntrip-atlas-data](https://github.com/bruce/ntrip-atlas-data)):
+```
+ntrip-atlas-data/
+├── data/                     # Community-maintained service database
+│   ├── global/              # Worldwide services (RTK2go, IGS)
+│   ├── emea/                # Europe, Middle East, Africa
+│   ├── apac/                # Asia Pacific
+│   ├── americas/            # North and South America
+│   └── africa/              # African regional services
+├── VERSION                   # Database version tracking
+└── README.md                # Service contribution guidelines
 ```
 
 ## Contributing
 
 ### Adding New NTRIP Services
 1. **Research service details** (coverage, authentication, reliability)
-2. **Create YAML entry** in appropriate geographic region following existing examples
-3. **Validate YAML file** using `tools/validators/service_validator.py`
+2. **Create YAML entry** in the [ntrip-atlas-data](https://github.com/bruce/ntrip-atlas-data) repository
+3. **Validate YAML file** using the validator from this repository: `tools/validators/service_validator.py`
 4. **Test service connectivity** and verify technical specifications
-5. **Submit pull request** with `source: "community"` or contact information
+5. **Submit pull request** to the data repository with `source: "community"` or contact information
 
 ### Library Development
 1. **Core improvements** to discovery algorithms and reliability
