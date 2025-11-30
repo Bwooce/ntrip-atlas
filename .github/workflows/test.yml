@@ -21,7 +21,10 @@ jobs:
 
     - name: Run unit tests
       run: |
-        cd tests
+        ls -la
+        ls -la tests/
+        pwd
+        cd tests && pwd && ls -la Makefile
         make clean
         make test
 
