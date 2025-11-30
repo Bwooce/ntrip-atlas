@@ -23,7 +23,7 @@ class ServiceValidator:
     VALID_COUNTRIES = {"AUS", "USA", "CAN", "GBR", "DEU", "FRA", "JPN", "GLOBAL"}  # Extend as needed
     VALID_PROTOCOLS = {"http", "https"}
     VALID_AUTH_METHODS = {"none", "basic", "digest"}
-    VALID_ORG_TYPES = {"government", "commercial", "community", "research"}
+    VALID_ORG_TYPES = {"government", "commercial", "community", "research", "academic"}
 
     def __init__(self):
         self.errors = []
