@@ -11,6 +11,8 @@ import sys
 import os
 import re
 import urllib.parse
+import subprocess
+import socket
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 
@@ -27,7 +29,7 @@ class ServiceValidator:
         self.errors = []
         self.warnings = []
 
-    def validate_file(self, filepath: str) -> bool:
+    def validate_file(self, filepath: str, test_connectivity: bool = False) -> bool:
         """Validate a single YAML service file"""
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -48,6 +50,10 @@ class ServiceValidator:
             # Examples validation (if present)
             if 'example_mountpoints' in data:
                 self._validate_examples(data['example_mountpoints'])
+
+            # Connectivity testing (if requested)
+            if test_connectivity and 'service' in data:
+                self._test_connectivity(data['service'])
 
             # Print results
             if self.errors:
@@ -258,22 +264,107 @@ class ServiceValidator:
                         self.errors.append(f"{prefix}: invalid longitude: {lon}")
 
 
+    def _test_connectivity(self, service: Dict[str, Any]) -> None:
+        """Test NTRIP service connectivity"""
+        print("🔗 Testing connectivity...")
+
+        endpoints = service.get('endpoints', [])
+        if not endpoints:
+            self.warnings.append("No endpoints to test")
+            return
+
+        for i, endpoint in enumerate(endpoints):
+            hostname = endpoint.get('hostname')
+            port = endpoint.get('port', 2101)
+            ssl = endpoint.get('ssl', False)
+
+            if not hostname:
+                self.warnings.append(f"Endpoint {i}: Missing hostname")
+                continue
+
+            print(f"  Testing {hostname}:{port} {'(SSL)' if ssl else ''}...")
+
+            # Test basic TCP connectivity
+            if self._test_port_connectivity(hostname, port):
+                print(f"    ✅ Port {port} is reachable")
+
+                # Test NTRIP sourcetable request
+                if self._test_ntrip_sourcetable(hostname, port, ssl):
+                    print(f"    ✅ NTRIP service responds")
+                else:
+                    self.warnings.append(f"NTRIP service at {hostname}:{port} did not respond correctly")
+            else:
+                self.warnings.append(f"Cannot connect to {hostname}:{port}")
+
+    def _test_port_connectivity(self, hostname: str, port: int, timeout: int = 5) -> bool:
+        """Test basic TCP connectivity to a port"""
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(timeout)
+            result = sock.connect_ex((hostname, port))
+            sock.close()
+            return result == 0
+        except Exception:
+            return False
+
+    def _test_ntrip_sourcetable(self, hostname: str, port: int, ssl: bool = False, timeout: int = 10) -> bool:
+        """Test NTRIP sourcetable request using curl"""
+        try:
+            protocol = "https" if ssl else "http"
+            url = f"{protocol}://{hostname}:{port}"
+
+            # Use curl to request sourcetable (basic NTRIP request)
+            cmd = [
+                'curl', '-s', '--connect-timeout', str(timeout),
+                '--max-time', str(timeout), '-I', url
+            ]
+
+            # On macOS, don't use timeout command
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 5)
+
+            # Check if we got any response (even if it requires auth)
+            if result.returncode == 0 or "401" in result.stdout or "WWW-Authenticate" in result.stdout:
+                return True
+
+            # Try with basic NTRIP GET request for sourcetable
+            cmd = [
+                'curl', '-s', '--connect-timeout', str(timeout),
+                '--max-time', str(timeout), '-H', 'User-Agent: NTRIP client',
+                url
+            ]
+
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 5)
+
+            # Success if we get any response, including auth requests
+            return result.returncode == 0 or "SOURCETABLE" in result.stdout or "401" in result.stderr
+
+        except subprocess.TimeoutExpired:
+            return False
+        except Exception:
+            return False
+
+
 def main():
     """Command-line interface"""
     if len(sys.argv) < 2:
         print("Usage: python3 service_validator.py <yaml_file> [yaml_file2 ...]")
         print("   or: python3 service_validator.py --directory <data_directory>")
+        print("   or: python3 service_validator.py --directory <data_directory> --test-connectivity")
         sys.exit(1)
 
     validator = ServiceValidator()
     all_passed = True
 
-    if sys.argv[1] == "--directory":
-        if len(sys.argv) < 3:
+    # Parse arguments
+    test_connectivity = "--test-connectivity" in sys.argv
+    args = [arg for arg in sys.argv[1:] if arg != "--test-connectivity"]
+
+    if len(args) > 0 and args[0] == "--directory":
+        if len(args) < 2:
             print("Error: --directory requires a directory path")
             sys.exit(1)
 
-        data_dir = sys.argv[2]
+        data_dir = args[1]
         if not os.path.isdir(data_dir):
             print(f"Error: {data_dir} is not a directory")
             sys.exit(1)
@@ -292,13 +383,13 @@ def main():
         print(f"Found {len(yaml_files)} YAML files to validate\n")
 
         for yaml_file in sorted(yaml_files):
-            if not validator.validate_file(yaml_file):
+            if not validator.validate_file(yaml_file, test_connectivity):
                 all_passed = False
             print()  # Blank line between files
     else:
         # Validate individual files
-        for yaml_file in sys.argv[1:]:
-            if not validator.validate_file(yaml_file):
+        for yaml_file in args:
+            if not validator.validate_file(yaml_file, test_connectivity):
                 all_passed = False
             print()
 
