@@ -290,6 +290,82 @@ Implemented exponential backoff with:
 - Set up automated releases with YYYYMMDD.sequence versioning
 - Create community contribution guidelines
 
+## GitHub Actions Workflow Monitoring
+
+### Checking Workflow Status After Every Commit
+
+**CRITICAL**: Always verify GitHub Actions pass after commits to prevent CI/CD failures.
+
+#### Quick Status Check Commands
+```bash
+# Check recent workflow runs for both repositories
+gh run list --repo Bwooce/ntrip-atlas --limit 3
+gh run list --repo Bwooce/ntrip-atlas-data --limit 3
+
+# Get detailed failure logs if needed
+gh run view --repo Bwooce/ntrip-atlas [RUN_ID] --log-failed
+gh run view --repo Bwooce/ntrip-atlas-data [RUN_ID] --log-failed
+```
+
+#### Automated Monitoring Setup
+```bash
+# Add to your shell profile for automatic checks
+alias check-ntrip-ci='echo "NTRIP Atlas CI Status:" && \
+    gh run list --repo Bwooce/ntrip-atlas --limit 1 --json conclusion,headBranch,status && \
+    gh run list --repo Bwooce/ntrip-atlas-data --limit 1 --json conclusion,headBranch,status'
+```
+
+#### Common Workflow Failures and Fixes
+
+1. **Code Quality Issues**:
+   - **TODO/FIXME comments**: Convert to specific implementation tasks or remove
+   - **Unused parameters**: Add `(void)param_name;` to suppress warnings
+   - **Memory constraint violations**: Update test limits or optimize structures
+
+2. **Repository URL Mismatches**:
+   - **Wrong GitHub username in workflows**: Ensure Bwooce vs bruce consistency
+   - **Clone failures**: Verify repository URLs match actual GitHub repository names
+
+3. **Security Scanner False Positives**:
+   - **"script" in "description"**: Use word boundaries in regex patterns `\bscript\b`
+   - **Legitimate content flagged**: Review and refine security patterns
+
+4. **Memory Test Failures**:
+   - **ESP32 constraints**: Balance realistic limits vs embedded constraints
+   - **String buffer limits**: Consider real-world hostname/mountpoint lengths
+   - **Static memory budget**: Account for expanded service data and optimizations
+
+### General CI/CD Health Monitoring
+
+#### Weekly Health Check Routine
+```bash
+# Check overall repository health
+gh repo view Bwooce/ntrip-atlas --json defaultBranch,hasIssuesEnabled,hasWikiEnabled
+gh repo view Bwooce/ntrip-atlas-data --json defaultBranch,hasIssuesEnabled,hasWikiEnabled
+
+# Review recent workflow trends
+gh run list --repo Bwooce/ntrip-atlas --limit 10 --json conclusion,createdAt,headBranch
+gh run list --repo Bwooce/ntrip-atlas-data --limit 10 --json conclusion,createdAt,headBranch
+```
+
+#### Proactive Monitoring Strategy
+- **Before each coding session**: Check latest workflow status
+- **After each commit**: Verify workflows pass within 5 minutes
+- **Weekly review**: Analyze workflow trends and failure patterns
+- **Monthly audit**: Review and update workflow definitions for efficiency
+
+#### Integration with Development Workflow
+```bash
+# Add to git commit hook (optional)
+#!/bin/bash
+echo "Checking CI status..."
+sleep 30  # Wait for GitHub to trigger workflow
+gh run list --repo $(gh repo view --json owner,name --jq '.owner.login + "/" + .name') --limit 1 --json conclusion --jq '.[] | select(.conclusion != "success") | "❌ CI Failed"'
+```
+
+This monitoring approach prevents CI/CD failures from accumulating and ensures
+continuous integration health across both repositories.
+
 ## Future Considerations
 
 ### Mobile/Roaming Support
