@@ -31,12 +31,12 @@ bool test_tile_key_encoding() {
     } test_cases[] = {
         {0, 0, 0, true, "Level 0 origin"},
         {1, 3, 7, true, "Level 1 tile"},
-        {2, 15, 31, true, "Level 2 tile"},
-        {3, 31, 63, true, "Level 3 tile"},
-        {4, 63, 127, true, "Level 4 tile"},
+        {2, 7, 15, true, "Level 2 tile"}, // Fixed: L2 max = [7,15]
+        {3, 15, 31, true, "Level 3 tile"}, // Fixed: L3 max = [15,31]
+        {4, 31, 63, true, "Level 4 tile"}, // Fixed: L4 max = [31,63]
         {7, 100, 200, false, "Invalid level"},
-        {2, 8192, 100, false, "Invalid lat tile"},
-        {2, 100, 8192, false, "Invalid lon tile"},
+        {2, 8, 15, false, "Invalid lat tile"}, // L2 lat_tile >= 8 is invalid
+        {2, 7, 16, false, "Invalid lon tile"}, // L2 lon_tile >= 16 is invalid
     };
 
     for (size_t i = 0; i < sizeof(test_cases) / sizeof(test_cases[0]); i++) {
@@ -95,11 +95,11 @@ bool test_coordinate_to_tile_conversion() {
         {0.0, 0.0, 0, 1, 2, "Origin at level 0"},
         {45.0, 90.0, 1, 3, 6, "Northeast quadrant level 1"},
         {-45.0, -90.0, 1, 1, 2, "Southwest quadrant level 1"},
-        {90.0, 180.0, 2, 15, 15, "North pole, date line"},
+        {90.0, 180.0, 2, 7, 15, "North pole, date line"}, // Fixed: L2 = 8×16 tiles, max = [7,15]
         {-90.0, -180.0, 2, 0, 0, "South pole, antimeridian"},
-        {37.7749, -122.4194, 3, 21, 7, "San Francisco"},
-        {51.5074, -0.1278, 3, 23, 15, "London"},
-        {-33.8688, 151.2093, 3, 9, 26, "Sydney"},
+        {37.7749, -122.4194, 3, 11, 5, "San Francisco"}, // Fixed calculation for L3
+        {51.5074, -0.1278, 3, 12, 15, "London"}, // Fixed calculation for L3
+        {-33.8688, 151.2093, 3, 4, 29, "Sydney"}, // Fixed calculation for L3
     };
 
     for (size_t i = 0; i < sizeof(test_cases) / sizeof(test_cases[0]); i++) {
@@ -181,8 +181,8 @@ bool test_tile_to_bounds_conversion() {
     } test_cases[] = {
         {0, 0, 0, "Level 0 southwest tile"},
         {0, 1, 3, "Level 0 northeast tile"},
-        {2, 8, 8, "Level 2 center tile"},
-        {4, 32, 64, "Level 4 tile"},
+        {2, 4, 8, "Level 2 center tile"},
+        {4, 16, 32, "Level 4 center tile"},
     };
 
     for (size_t i = 0; i < sizeof(test_cases) / sizeof(test_cases[0]); i++) {
@@ -438,7 +438,7 @@ bool test_hierarchical_fallback() {
     // Should find the service via hierarchical fallback
     uint8_t found_services[5];
     size_t found_count = ntrip_atlas_find_services_by_location_fast(
-        45.5, 89.5,  // Within the coarse tile area
+        45.5, 90.5,  // Within the same level 1 tile as (45.0, 90.0)
         found_services, 5
     );
 
