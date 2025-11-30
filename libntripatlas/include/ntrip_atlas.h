@@ -56,16 +56,17 @@ typedef enum {
     NTRIP_ATLAS_ERROR_PLATFORM = -9,
     NTRIP_ATLAS_ERROR_SERVICE_FAILED = -10,
     NTRIP_ATLAS_ERROR_ALL_SERVICES_FAILED = -11,
+    NTRIP_ATLAS_ERROR_NOT_FOUND = -12,
     // Database versioning errors
-    NTRIP_ATLAS_ERROR_INVALID_MAGIC = -12,       // Database magic number mismatch
-    NTRIP_ATLAS_ERROR_VERSION_TOO_OLD = -13,     // Library version too old for database
-    NTRIP_ATLAS_ERROR_INCOMPATIBLE_VERSION = -14, // Incompatible schema version
-    NTRIP_ATLAS_ERROR_MISSING_FEATURE = -15,     // Required feature not supported
+    NTRIP_ATLAS_ERROR_INVALID_MAGIC = -13,       // Database magic number mismatch
+    NTRIP_ATLAS_ERROR_VERSION_TOO_OLD = -14,     // Library version too old for database
+    NTRIP_ATLAS_ERROR_INCOMPATIBLE_VERSION = -15, // Incompatible schema version
+    NTRIP_ATLAS_ERROR_MISSING_FEATURE = -16,     // Required feature not supported
     // Tiered loading errors
-    NTRIP_ATLAS_ERROR_NO_DISCOVERY_INDEX = -16,  // Discovery index not loaded
-    NTRIP_ATLAS_ERROR_NO_ENDPOINTS = -17,        // Service endpoints not available
-    NTRIP_ATLAS_ERROR_NO_METADATA = -18,         // Service metadata not available
-    NTRIP_ATLAS_ERROR_LOAD_FAILED = -19          // Data loading operation failed
+    NTRIP_ATLAS_ERROR_NO_DISCOVERY_INDEX = -17,  // Discovery index not loaded
+    NTRIP_ATLAS_ERROR_NO_ENDPOINTS = -18,        // Service endpoints not available
+    NTRIP_ATLAS_ERROR_NO_METADATA = -19,         // Service metadata not available
+    NTRIP_ATLAS_ERROR_LOAD_FAILED = -20          // Data loading operation failed
 } ntrip_atlas_error_t;
 
 /**
@@ -322,6 +323,52 @@ ntrip_atlas_error_t ntrip_atlas_find_best_with_fallback(ntrip_best_service_t* pr
 ntrip_atlas_error_t ntrip_atlas_set_credentials(const char* service_id,
                                                const char* username,
                                                const char* password);
+
+/**
+ * Credential store for managing multiple service credentials
+ */
+typedef struct {
+    uint8_t count;
+    struct {
+        char service_id[32];
+        char username[NTRIP_ATLAS_MAX_USERNAME];
+        char password[NTRIP_ATLAS_MAX_PASSWORD];
+    } credentials[16];  // Support up to 16 different services
+} ntrip_credential_store_t;
+
+/**
+ * Initialize credential store
+ */
+void ntrip_atlas_init_credential_store(ntrip_credential_store_t* store);
+
+/**
+ * Add credentials to store
+ */
+ntrip_atlas_error_t ntrip_atlas_add_credential(ntrip_credential_store_t* store,
+                                              const char* service_id,
+                                              const char* username,
+                                              const char* password);
+
+/**
+ * Check if credentials exist for a service
+ */
+bool ntrip_atlas_has_credentials(const ntrip_credential_store_t* store,
+                                const char* service_id);
+
+/**
+ * Get credentials for a service
+ */
+ntrip_atlas_error_t ntrip_atlas_get_credentials(const ntrip_credential_store_t* store,
+                                               const char* service_id,
+                                               char* username, size_t username_len,
+                                               char* password, size_t password_len);
+
+/**
+ * Check if a service is accessible with available credentials
+ * Uses provider name as service identifier
+ */
+bool ntrip_atlas_is_service_accessible(const ntrip_service_config_t* service,
+                                      const ntrip_credential_store_t* store);
 
 /**
  * Test connectivity to a specific service
