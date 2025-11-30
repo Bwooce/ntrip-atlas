@@ -247,6 +247,14 @@ score += access_score * 0.1;      // Easier access preferred
 4. Run full test suite before committing
 5. Update API documentation for public interface changes
 
+### Temporary Files and Working Documents
+1. **True temporary files** should be created in `/tmp/` directory, not in project root
+2. **Working documents** (design reviews, implementation notes) should be excluded from git:
+   - Add `*_REVIEW.md`, `*_CONTEXT.md`, `NOTES.md` patterns to `.gitignore`
+   - Internal working documents are for development context only, not public commit
+3. **Use descriptive names** for temporary files with context for later recovery
+4. **Clean up** temporary files when no longer needed
+
 ## Current Implementation Status
 
 ### Service Database (Completed)

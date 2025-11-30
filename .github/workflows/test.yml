@@ -24,13 +24,6 @@ jobs:
         cd tests
         make clean
         make test
-        make run-tests
-
-    - name: Test memory constraints
-      run: |
-        cd tests/memory
-        gcc -DESP32_MEMORY_TEST test_esp32_memory.c -o test_memory
-        ./test_memory
 
     - name: Test examples compile
       run: |

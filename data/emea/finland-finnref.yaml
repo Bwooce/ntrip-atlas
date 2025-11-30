@@ -1,0 +1,92 @@
+schema_version: "1.0.0"
+last_updated: "2024-11-30T00:00:00Z"
+
+service:
+  id: "finland_finnref"
+  name: "FinnRef - Finnish Permanent GNSS Network"
+  provider: "National Land Survey of Finland (NLS)"
+  organization_type: "government"
+  country: "FIN"
+  website: "https://finpos.nls.fi/"
+
+  endpoints:
+    - protocol: "http"
+      hostname: "finpos.nls.fi"
+      port: 2101
+      ssl: false
+      priority: 1
+      description: "NTRIP caster (connection details via portal)"
+
+  coverage:
+    bounding_box:
+      lat_min: 59.5
+      lat_max: 70.0
+      lon_min: 19.0
+      lon_max: 31.5
+    description: "Complete Finland coverage with ~50 reference stations"
+    regions: ["Finland"]
+
+  authentication:
+    required: true
+    method: "basic"
+    registration_required: true
+    registration_url: "https://finpos.nls.fi/"
+    approval_time: "immediate"
+    terms: "Free government service for DGNSS, RTK requires research justification"
+
+  service_info:
+    cost: "free"
+    commercial_use: false
+    research_use: true
+    data_retention: "permanent"
+    rtk_limitations: "Research and testing only (3-month periods)"
+
+  technical:
+    ntrip_version: "2.0"
+    supported_formats: ["RTCM 3.2", "RTCM 2.3"]
+    supported_systems: ["GPS", "GLONASS", "Galileo"]
+    coordinate_system: "EUREF-FIN (ETRS-TM35FIN)"
+    update_rate_hz: 1
+
+  quality:
+    reliability_rating: 5
+    accuracy_rating: 5
+    coverage_rating: 5
+    support_rating: 4
+    ease_of_use: 3
+
+  performance:
+    dgnss_accuracy: "~0.5 meters"
+    rtk_accuracy: "centimeter level"
+    network_stations: 47
+    coverage_type: "national"
+
+  services:
+    dgnss:
+      description: "Free real-time DGNSS corrections"
+      accuracy: "~0.5m"
+      access: "immediate"
+    rtk:
+      description: "Research RTK service"
+      accuracy: "cm-level"
+      access: "application required"
+      duration: "3-month periods"
+    rinex:
+      description: "Post-processing data"
+      access: "free open data"
+
+  network_history:
+    established: "1994"
+    modernized: "2012-2014"
+    expanded: "2017-2018"
+    current_stations: 47
+
+  notes:
+    - "Government-operated national GNSS network"
+    - "Free DGNSS service with half-meter accuracy"
+    - "RTK service limited to research applications"
+    - "Connection details provided via FINPOS portal"
+    - "Stopped EPN data sharing Dec 1, 2024 (domestic service unaffected)"
+    - "NMEA position message required for service"
+
+source: "initial_dataload"

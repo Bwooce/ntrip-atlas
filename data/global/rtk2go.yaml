@@ -1,0 +1,117 @@
+# RTK2go Community NTRIP Service
+# Global community-driven RTK base station network
+# Documentation: http://rtk2go.com/
+
+schema_version: "1.0.0"
+last_updated: "2024-11-29"
+verified_by: "community"
+
+service:
+  id: "rtk2go"
+  name: "RTK2go Community Network"
+  country: "GLOBAL"
+  provider: "RTK2go Community"
+  organization_type: "community"
+  website: "http://rtk2go.com/"
+
+  # Service endpoints
+  endpoints:
+    - protocol: "http"
+      hostname: "rtk2go.com"
+      port: 2101
+      ssl: false
+      priority: 1
+      description: "Legacy non-secure connection"
+    - protocol: "https"
+      hostname: "rtk2go.com"
+      port: 2102
+      ssl: true
+      priority: 2
+      description: "Secure connection with rotating certificates"
+
+  # Geographic coverage
+  coverage:
+    description: "Worldwide community base stations"
+    regions: ["global"]
+    bounding_box:
+      lat_min: -90.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 180.0
+
+  # Authentication requirements
+  authentication:
+    required: true
+    method: "basic"
+    registration_url: "http://rtk2go.com/new-reservation/"
+    registration_required: false
+    approval_time: "immediate"
+    notes: "Username: email address, Password: 'none'"
+
+  # Service characteristics
+  service_info:
+    cost: "free"
+    commercial_use: true
+    data_retention: "varies by base station"
+    uptime_sla: "best effort"
+    support_forum: "http://rtk2go.com/forum/"
+
+  # Technical specifications
+  technical:
+    supported_formats: ["RTCM 3.2", "RTCM 3.1", "RTCM 2.3", "RAW"]
+    supported_systems: ["GPS", "GLONASS", "Galileo", "BeiDou", "QZSS"]
+    update_rate: "varies (0.1Hz - 10Hz)"
+    latency: "varies"
+    typical_bitrate: "500-5000 bps"
+
+  # Quality metadata (community-assessed)
+  quality:
+    reliability_rating: 3  # Variable - community maintained
+    accuracy_rating: 4     # Generally good quality
+    coverage_rating: 4     # Excellent global coverage
+    support_rating: 3      # Community forum support
+    ease_of_use: 5         # Very easy to use
+
+  # Statistics (approximate)
+  statistics:
+    active_base_stations: 800
+    registered_base_stations: 10000
+    daily_connections: 200000
+    countries_covered: 150
+
+  # Known limitations and notes
+  notes: |
+    - Largest global community NTRIP network
+    - Quality varies by individual base station operator
+    - Some base stations may be temporary or intermittent
+    - Excellent for global roaming and testing
+    - Best effort availability - not guaranteed
+    - Free service with simple email-based authentication
+    - Great fallback option when commercial services unavailable
+
+# Auto-discoverable mountpoints (examples from major cities)
+# Full list discovered at runtime via sourcetable query
+example_mountpoints:
+  - region: "North America"
+    examples: ["NYC1", "LAX1", "CHI1", "SEATTLE", "TORONTO"]
+
+  - region: "Europe"
+    examples: ["LONDON", "PARIS", "BERLIN", "MADRID", "ROME"]
+
+  - region: "Asia Pacific"
+    examples: ["TOKYO", "SYDNEY", "SINGAPORE", "SEOUL", "BANGKOK"]
+
+  - region: "South America"
+    examples: ["SAO_PAULO", "BUENOS_AIRES", "LIMA", "BOGOTA"]
+
+  - region: "Africa"
+    examples: ["CAPE_TOWN", "JOHANNESBURG", "NAIROBI", "LAGOS"]
+
+# Special mountpoints
+special_mountpoints:
+  nearest_base:
+    mountpoint: "NEAR"
+    description: "Automatically selects nearest available base station"
+    notes: "Requires GPGGA position input"
+
+source: "initial_dataload"

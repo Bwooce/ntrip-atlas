@@ -1,0 +1,30 @@
+# NTRIP Atlas Service Database Version
+# Format: YYYYMMDD.sequence
+#
+# YYYYMMDD: Date of last data update
+# sequence: Incremental update number within same day (01, 02, 03...)
+#
+# This file is automatically updated by CI/CD when service data changes
+
+DATABASE_VERSION=20241130.01
+SCHEMA_VERSION=1.0.0
+LAST_UPDATED=2024-11-30T00:00:00Z
+TOTAL_SERVICES=6
+GEOGRAPHIC_REGIONS=4
+
+# Service counts by region
+GLOBAL_SERVICES=2    # RTK2GO, Point One Polaris
+EMEA_SERVICES=2      # EUREF-IP, Finland FinnRef
+APAC_SERVICES=1      # Geoscience Australia
+AMERICAS_SERVICES=1  # Massachusetts MaCORS
+AFRICA_SERVICES=0
+
+# Validation status
+VALIDATED=true
+VALIDATION_TOOL_VERSION=1.0.0
+VALIDATION_DATE=2024-11-30T00:00:00Z
+
+# Initial dataset features
+FAILURE_TRACKING_SUPPORT=true
+EXPONENTIAL_BACKOFF_LEVELS=8
+SOURCE_ATTRIBUTION=initial_dataload

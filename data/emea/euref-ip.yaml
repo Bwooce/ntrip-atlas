@@ -1,0 +1,68 @@
+schema_version: "1.0.0"
+last_updated: "2024-11-30T00:00:00Z"
+
+service:
+  id: "euref_ip"
+  name: "EUREF Permanent GNSS Network"
+  provider: "EUREF-IP Consortium"
+  organization_type: "government"
+  country: "EMEA"
+
+  endpoints:
+    - protocol: "http"
+      hostname: "euref-ip.net"
+      port: 2101
+      ssl: false
+      priority: 1
+    - protocol: "https"
+      hostname: "euref-ip.net"
+      port: 443
+      ssl: true
+      priority: 2
+    - protocol: "http"
+      hostname: "www.euref-ip.be"
+      port: 2101
+      ssl: false
+      priority: 3
+    - protocol: "https"
+      hostname: "www.euref-ip.be"
+      port: 2102
+      ssl: true
+      priority: 4
+
+  coverage:
+    bounding_box:
+      lat_min: 35.0
+      lat_max: 71.0
+      lon_min: -25.0
+      lon_max: 45.0
+    description: "European coverage from EPN stations"
+
+  authentication:
+    required: true
+    method: "basic"
+    registration_required: true
+    registration_url: "https://register.rtcm-ntrip.org/cgi-bin/registration.cgi"
+    contact_email: "euref-ip@bkg.bund.de"
+    terms: "Free for demonstration and evaluation purposes only"
+
+  quality:
+    reliability_rating: 5
+    accuracy_rating: 5
+    coverage_rating: 5
+    support_rating: 4
+    ease_of_use: 3
+
+  technical:
+    ntrip_version: "2.0"
+    typical_formats: ["RTCM 3.2", "RTCM 3.1", "Raw GNSS"]
+    systems_supported: ["GPS", "GLONASS", "Galileo", "BeiDou"]
+    update_rate_hz: 1
+
+  notes:
+    - "Raw GNSS data streams only, not RTK corrections"
+    - "Operated by BKG in support of Real-Time IGS Working Group"
+    - "Registration required with short description of application"
+    - "Best effort operation, not guaranteed 24/7"
+
+source: "initial_dataload"

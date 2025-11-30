@@ -112,3 +112,11 @@ releases/
 # Temporary service data during development
 temp_services/
 scratch/
+
+# Internal working documents (not for public commit)
+DESIGN_REVIEW.md
+IMPLEMENTATION_CONTEXT.md
+*_REVIEW.md
+*_CONTEXT.md
+NOTES.md
+TODO.md

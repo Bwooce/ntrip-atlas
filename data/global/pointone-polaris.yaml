@@ -1,0 +1,91 @@
+schema_version: "1.0.0"
+last_updated: "2024-11-30T00:00:00Z"
+
+service:
+  id: "pointone_polaris"
+  name: "Point One Navigation Polaris RTK Network"
+  provider: "Point One Navigation, Inc."
+  organization_type: "commercial"
+  country: "GLOBAL"
+  website: "https://pointonenav.com/polaris/"
+
+  endpoints:
+    - protocol: "https"
+      hostname: "polaris.pointonenav.com"
+      port: 443
+      ssl: true
+      priority: 1
+      description: "Secure NTRIP caster (recommended)"
+    - protocol: "http"
+      hostname: "polaris.pointonenav.com"
+      port: 80
+      ssl: false
+      priority: 2
+      description: "Standard insecure port"
+
+  coverage:
+    bounding_box:
+      lat_min: -50.0
+      lat_max: 70.0
+      lon_min: -180.0
+      lon_max: 180.0
+    description: "Global coverage: US, EU, UK, CA, AU with 1,400+ stations"
+    regions: ["North America", "Europe", "Australia", "United Kingdom"]
+
+  authentication:
+    required: true
+    method: "basic"
+    registration_required: true
+    registration_url: "https://app.pointonenav.com"
+    approval_time: "immediate"
+    terms: "Commercial service with subscription required"
+
+  service_info:
+    cost: "paid"
+    subscription_model: "device-based"
+    commercial_use: true
+    free_trial: true
+    support_level: "commercial"
+
+  technical:
+    ntrip_version: ["1.0", "2.0"]
+    supported_formats: ["RTCM 3.2"]
+    supported_systems: ["GPS", "GLONASS", "Galileo", "BeiDou"]
+    coordinate_systems: ["NAD83", "ITRF2014"]
+    update_rate_hz: 1
+    typical_bitrate: "500-2000 bps"
+    convergence_time: "sub-second"
+
+  quality:
+    reliability_rating: 5
+    accuracy_rating: 5
+    coverage_rating: 4
+    support_rating: 5
+    ease_of_use: 4
+
+  performance:
+    horizontal_accuracy: "1-3 cm"
+    vertical_accuracy: "1-3 cm"
+    convergence: "lightning-fast"
+    network_stations: 1400
+    density: "highest in US"
+
+  mountpoints:
+    standard:
+      - mountpoint: "POLARIS_LOCAL"
+        description: "Local VRS for NAD83 coordinate system"
+        coordinate_system: "NAD83"
+        coverage: "regional"
+      - mountpoint: "POLARIS"
+        description: "Global corrections for ITRF2014"
+        coordinate_system: "ITRF2014"
+        coverage: "global"
+
+  notes:
+    - "Premium commercial RTK network with global coverage"
+    - "Each device has unique username/password"
+    - "Supports wide variety of survey, GIS, and robotics equipment"
+    - "Advanced correction algorithms for cm-accuracy"
+    - "Free trial available for evaluation"
+
+source: "initial_dataload"

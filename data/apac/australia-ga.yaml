@@ -1,0 +1,101 @@
+# Geoscience Australia NTRIP Service
+# National government positioning service for Australia
+# Documentation: https://gnss.ga.gov.au/
+
+schema_version: "1.0.0"
+last_updated: "2024-11-29"
+verified_by: "community"
+
+service:
+  id: "geoscience_australia"
+  name: "Geoscience Australia GNSS Service"
+  country: "AUS"
+  provider: "Geoscience Australia"
+  organization_type: "government"
+  website: "https://gnss.ga.gov.au/"
+
+  # Service endpoints
+  endpoints:
+    - protocol: "https"
+      hostname: "ntrip.data.gnss.ga.gov.au"
+      port: 443
+      ssl: true
+      priority: 1
+
+  # Geographic coverage
+  coverage:
+    description: "Continental Australia and external territories"
+    regions: ["australia", "antarctica", "pacific_territories"]
+    bounding_box:
+      lat_min: -54.0  # Heard Island
+      lat_max: -9.0   # Torres Strait
+      lon_min: 72.0   # Heard Island
+      lon_max: 168.0  # Norfolk Island
+
+  # Authentication requirements
+  authentication:
+    required: true
+    method: "basic"
+    registration_url: "https://gnss.ga.gov.au/user-registration"
+    registration_required: true
+    approval_time: "1-2 business days"
+    terms_url: "https://gnss.ga.gov.au/terms"
+
+  # Service characteristics
+  service_info:
+    cost: "free"
+    commercial_use: true
+    data_retention: "7 days"
+    uptime_sla: "99.0%"
+    support_email: "gnss@ga.gov.au"
+
+  # Technical specifications
+  technical:
+    supported_formats: ["RTCM 3.2", "RTCM 3.1"]
+    supported_systems: ["GPS", "GLONASS", "Galileo", "BeiDou"]
+    update_rate: "1Hz"
+    latency: "<2 seconds"
+    typical_bitrate: "2500-4000 bps"
+
+  # Quality metadata (community-assessed)
+  quality:
+    reliability_rating: 5  # 1-5 scale
+    accuracy_rating: 5     # Professional survey grade
+    coverage_rating: 5     # Comprehensive national coverage
+    support_rating: 4      # Good government support
+    ease_of_use: 3         # Registration required
+
+  # Known limitations and notes
+  notes: |
+    - Excellent coverage across Australia and territories
+    - Professional-grade accuracy suitable for surveying
+    - Free but requires registration and approval
+    - Government-operated, high reliability
+    - Best choice for Australian operations
+
+# Auto-discoverable mountpoints (examples - actual data comes from sourcetable)
+# These are included for documentation but library will query live sourcetable
+example_mountpoints:
+  - id: "SYDN00AUS0"
+    name: "Sydney Observatory"
+    city: "Sydney"
+    state: "NSW"
+    coordinates: [-33.8568, 151.2153]
+
+  - id: "MELB00AUS0"
+    name: "Melbourne University"
+    city: "Melbourne"
+    state: "VIC"
+    coordinates: [-37.8136, 144.9631]
+
+  - id: "BRIS00AUS0"
+    name: "Brisbane"
+    city: "Brisbane"
+    state: "QLD"
+    coordinates: [-27.4698, 153.0251]
+
+  - id: "PERT00AUS0"
+    name: "Perth"
+    city: "Perth"
+    state: "WA"
+    coordinates: [-31.9505, 115.8605]

@@ -8,6 +8,8 @@
 #include <string.h>
 #include <assert.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <math.h>
 
 // ESP32 memory limits (conservative estimates)
 #define ESP32_MAX_STACK_USAGE    8192   // 8KB max stack per task
