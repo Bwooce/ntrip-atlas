@@ -20,7 +20,29 @@ class ServiceValidator:
     """Validates NTRIP service YAML files"""
 
     REQUIRED_SCHEMA_VERSION = "1.0.0"
-    VALID_COUNTRIES = {"AUS", "USA", "CAN", "GBR", "DEU", "FRA", "JPN", "GLOBAL"}  # Extend as needed
+    # ISO 3166-1 alpha-3 country codes (common subset) + regional codes
+    VALID_COUNTRIES = {
+        # Regional groupings
+        "GLOBAL", "EMEA", "APAC", "AMER",
+        # Common ISO 3166-1 alpha-3 codes
+        "AFG", "AGO", "ALB", "AND", "ARE", "ARG", "ARM", "AUS", "AUT", "AZE",
+        "BEL", "BGD", "BGR", "BHR", "BIH", "BLR", "BOL", "BRA", "BTN", "BWA",
+        "CAN", "CHE", "CHL", "CHN", "COL", "CRI", "CUB", "CYP", "CZE",
+        "DEU", "DNK", "DOM", "DZA", "ECU", "EGY", "ESP", "EST", "ETH",
+        "FIN", "FRA", "GAB", "GBR", "GEO", "GHA", "GRC", "GTM",
+        "HKG", "HND", "HRV", "HUN",
+        "IDN", "IND", "IRL", "IRN", "IRQ", "ISL", "ISR", "ITA",
+        "JPN", "JOR", "KAZ", "KEN", "KGZ", "KHM", "KOR", "KWT",
+        "LBN", "LBY", "LKA", "LTU", "LUX", "LVA",
+        "MAR", "MDA", "MEX", "MKD", "MLI", "MMR", "MNG", "MOZ",
+        "NGA", "NIC", "NLD", "NOR", "NPL", "NZL",
+        "OMN", "PAK", "PAN", "PER", "PHL", "POL", "PRT", "PRY",
+        "QAT", "ROU", "RUS", "RWA",
+        "SAU", "SDN", "SEN", "SGP", "SRB", "SVK", "SVN", "SWE",
+        "THA", "TJK", "TKM", "TUN", "TUR", "TWN",
+        "UGA", "UKR", "URY", "USA", "UZB",
+        "VEN", "VNM", "YEM", "ZAF", "ZMB", "ZWE"
+    }
     VALID_PROTOCOLS = {"http", "https"}
     VALID_AUTH_METHODS = {"none", "basic", "digest"}
     VALID_ORG_TYPES = {"government", "commercial", "community", "research", "academic"}

@@ -381,3 +381,4 @@ Eventually could add optional live service monitoring:
 - Community reliability reporting
 
 **Remember**: The core library must work without any live monitoring dependencies.
+- remember to check the github actions 5 minutes after every commit using the command line tools, and fix problems that appear
