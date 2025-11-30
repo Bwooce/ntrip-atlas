@@ -124,6 +124,8 @@ typedef struct {
 
 /**
  * Best service selection result
+ * NOTE: All essential mountpoint data is copied inline to avoid pointer lifetime issues.
+ *       Pointers to config/mountpoint structs are only valid during discovery.
  */
 typedef struct {
     char server[NTRIP_ATLAS_MAX_URL_LEN];
@@ -134,8 +136,14 @@ typedef struct {
     char password[NTRIP_ATLAS_MAX_PASSWORD];
     double distance_km;
     uint8_t quality_score;
-    const ntrip_service_config_t* service_info;
-    const ntrip_mountpoint_t* mountpoint_info;
+
+    // Essential mountpoint information copied inline (fixes pointer lifetime bug)
+    double mountpoint_latitude;
+    double mountpoint_longitude;
+    char format[NTRIP_ATLAS_MAX_FORMAT];
+    uint8_t nmea_required;
+
+    const ntrip_service_config_t* service_info;  // Still available for reference
 } ntrip_best_service_t;
 
 /**
@@ -179,12 +187,54 @@ typedef struct {
 } ntrip_failure_config_t;
 
 /**
- * Platform abstraction interface
+ * Streaming callback context
  */
 typedef struct {
-    // HTTP/HTTPS requests for sourcetable discovery
-    int (*http_request)(const char* host, uint16_t port, uint8_t ssl,
-                       const char* path, char* response, size_t max_len);
+    void* user_data;           // User-provided context
+    void* internal_state;      // Internal parser state
+} ntrip_stream_context_t;
+
+/**
+ * HTTP streaming callback function
+ *
+ * Called repeatedly with chunks of HTTP response data as they arrive.
+ * Enables processing of large sourcetables without buffering entire response.
+ *
+ * @param chunk      Pointer to data chunk (not null-terminated)
+ * @param len        Length of data chunk in bytes
+ * @param context    User context pointer passed to http_stream
+ * @return          0 to continue receiving, non-zero to stop streaming
+ */
+typedef int (*ntrip_stream_callback_t)(
+    const char* chunk,
+    size_t len,
+    void* context
+);
+
+/**
+ * Platform abstraction interface (v2.0 - streaming support)
+ */
+typedef struct {
+    uint16_t interface_version;  // Set to 2 for streaming support
+
+    // Streaming HTTP/HTTPS for sourcetable discovery
+    // Replaces old http_request buffer-based approach
+    int (*http_stream)(
+        const char* host,
+        uint16_t port,
+        uint8_t ssl,
+        const char* path,
+        ntrip_stream_callback_t on_data,
+        void* user_context,
+        uint32_t timeout_ms
+    );
+
+    // NMEA sentence sending for VRS networks
+    // Called after successful mountpoint connection
+    int (*send_nmea)(
+        void* connection,
+        const char* nmea_sentence
+    );
 
     // Secure credential storage
     int (*store_credential)(const char* key, const char* value);
@@ -306,6 +356,31 @@ ntrip_failure_config_t ntrip_atlas_get_default_failure_config(void);
  * Calculate distance between two coordinates (Haversine formula)
  */
 double ntrip_atlas_calculate_distance(double lat1, double lon1, double lat2, double lon2);
+
+/**
+ * Format NMEA GGA sentence for VRS position updates
+ *
+ * Creates a properly formatted NMEA GGA sentence with checksum.
+ * Required by many VRS networks to select appropriate virtual reference station.
+ *
+ * @param buffer        Output buffer for GGA sentence
+ * @param max_len       Size of output buffer (recommend 128 bytes minimum)
+ * @param latitude      Latitude in decimal degrees (-90 to +90)
+ * @param longitude     Longitude in decimal degrees (-180 to +180)
+ * @param altitude_m    Altitude in meters above WGS84 ellipsoid
+ * @param fix_quality   Fix quality: 0=invalid, 1=GPS, 2=DGPS, 4=RTK fixed, 5=RTK float
+ * @param satellites    Number of satellites in use (0-99)
+ * @return             Length of formatted sentence, or negative on error
+ */
+int ntrip_atlas_format_gga(
+    char* buffer,
+    size_t max_len,
+    double latitude,
+    double longitude,
+    double altitude_m,
+    uint8_t fix_quality,
+    uint8_t satellites
+);
 
 /**
  * Get library version string

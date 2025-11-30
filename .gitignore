@@ -20,6 +20,10 @@ libntripatlas/src/generated/
 ntrip_services_data.h
 ntrip_services_data.c
 
+# Service data (lives in separate ntrip-atlas-data repository)
+data/
+services/
+
 # Platform-specific build files
 CMakeCache.txt
 CMakeFiles/
