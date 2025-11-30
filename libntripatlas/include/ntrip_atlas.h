@@ -187,6 +187,25 @@ typedef struct {
 } ntrip_failure_config_t;
 
 /**
+ * Compact failure storage for memory-constrained systems (6 bytes vs 80 bytes)
+ * Provides 93% memory reduction for ESP32 deployments
+ */
+typedef struct __attribute__((packed)) {
+    uint8_t service_index;       // 1 byte - index into service table (0-255)
+    uint8_t backoff_level : 4;   // 4 bits - exponential backoff level (0-15)
+    uint8_t failure_count : 4;   // 4 bits - failure count (0-15, saturates at 15)
+    uint32_t retry_time_hours;   // 4 bytes - hours since epoch when retry allowed
+} ntrip_compact_failure_t;       // 6 bytes total
+
+/**
+ * Service index mapping for compact failure storage
+ */
+typedef struct {
+    char service_id[32];         // Service identifier (shortened)
+    uint8_t service_index;       // Compact index (0-255)
+} ntrip_service_index_entry_t;
+
+/**
  * Streaming callback context
  */
 typedef struct {
@@ -336,6 +355,98 @@ bool ntrip_atlas_is_service_blocked(const char* service_id);
  * Get time until service can be retried (0 if available now)
  */
 uint32_t ntrip_atlas_get_service_retry_time(const char* service_id);
+
+/**
+ * Compact Failure Tracking API (Memory-optimized for ESP32)
+ * Reduces memory usage from 80 bytes to 6 bytes per service (93% reduction)
+ */
+
+/**
+ * Initialize compact failure tracking with service index mapping
+ * @param service_mapping Array of service ID to index mappings
+ * @param mapping_count Number of entries in service_mapping array
+ */
+ntrip_atlas_error_t ntrip_atlas_init_compact_failure_tracking(
+    const ntrip_service_index_entry_t* service_mapping,
+    size_t mapping_count
+);
+
+/**
+ * Convert service ID string to compact index
+ * @param service_id Service identifier string
+ * @return Service index (0-255) or 255 if not found
+ */
+uint8_t ntrip_atlas_get_service_index(const char* service_id);
+
+/**
+ * Record a service failure using compact storage
+ * @param service_index Service index (from ntrip_atlas_get_service_index)
+ */
+ntrip_atlas_error_t ntrip_atlas_record_compact_failure(uint8_t service_index);
+
+/**
+ * Record service success using compact storage (resets failure count)
+ * @param service_index Service index
+ */
+ntrip_atlas_error_t ntrip_atlas_record_compact_success(uint8_t service_index);
+
+/**
+ * Check if service is blocked using compact storage
+ * @param service_index Service index
+ * @return true if service is currently in backoff
+ */
+bool ntrip_atlas_is_compact_service_blocked(uint8_t service_index);
+
+/**
+ * Get retry time for compact service (hours until retry allowed)
+ * @param service_index Service index
+ * @return Hours until retry allowed (0 if available now)
+ */
+uint32_t ntrip_atlas_get_compact_retry_time_hours(uint8_t service_index);
+
+/**
+ * Convert compact failure to full failure structure (for debugging/analysis)
+ * @param compact Compact failure structure
+ * @param full Output full failure structure
+ */
+ntrip_atlas_error_t ntrip_atlas_expand_compact_failure(
+    const ntrip_compact_failure_t* compact,
+    ntrip_service_failure_t* full
+);
+
+/**
+ * Get backoff seconds from backoff level (utility function)
+ * @param backoff_level Backoff level (0-15)
+ * @return Backoff duration in seconds
+ */
+uint32_t ntrip_atlas_get_backoff_seconds_from_level(uint8_t backoff_level);
+
+/**
+ * Filter service list to exclude blocked services during discovery
+ * This ensures users get immediate NTRIP data from next-best service
+ * instead of waiting for blocked services to become available
+ *
+ * @param services Input array of service candidates
+ * @param service_count Number of services in input array
+ * @param filtered_services Output array of non-blocked services
+ * @param max_filtered Maximum size of filtered_services array
+ * @return Number of non-blocked services in filtered array
+ */
+size_t ntrip_atlas_filter_blocked_services(
+    const ntrip_service_config_t* services,
+    size_t service_count,
+    ntrip_service_config_t* filtered_services,
+    size_t max_filtered
+);
+
+/**
+ * Check if a service should be skipped during discovery due to failure backoff
+ * Used internally by discovery algorithms to prioritize available services
+ *
+ * @param service_id Service identifier to check
+ * @return true if service should be skipped (in backoff), false if available
+ */
+bool ntrip_atlas_should_skip_service(const char* service_id);
 
 /**
  * Clear all failure history (for testing or reset purposes)

@@ -10,7 +10,7 @@ TEST_MEMORY = memory
 TEST_INTEGRATION = integration
 
 # Test executables
-UNIT_TESTS = $(TEST_UNIT)/test_distance
+UNIT_TESTS = $(TEST_UNIT)/test_distance $(TEST_UNIT)/test_compact_failures
 MEMORY_TESTS = $(TEST_MEMORY)/test_esp32_memory
 INTEGRATION_TESTS =
 
@@ -22,6 +22,9 @@ all: $(ALL_TESTS)
 # Build individual test suites
 $(TEST_UNIT)/test_distance: $(TEST_UNIT)/test_distance.c
 	$(CC) $(CFLAGS) $< -o $@ $(MATHLIB)
+
+$(TEST_UNIT)/test_compact_failures: $(TEST_UNIT)/test_compact_failures.c ../libntripatlas/src/ntrip_compact_failures.c
+	$(CC) $(CFLAGS) -I../libntripatlas/include $^ -o $@ $(MATHLIB)
 
 $(TEST_MEMORY)/test_esp32_memory: $(TEST_MEMORY)/test_esp32_memory.c
 	$(CC) $(CFLAGS) $< -o $@ $(MATHLIB)
