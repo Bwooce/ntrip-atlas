@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -228,6 +229,41 @@ typedef struct __attribute__((packed)) {
 #define NTRIP_FLAG_FREE_ACCESS      (1 << 4)  // Free/community access
 
 /**
+ * Geographic blacklisting structures for avoiding repeated queries
+ * to services outside their coverage areas
+ */
+
+// Maximum services that can have geographic blacklists
+#define NTRIP_MAX_SERVICES 32
+
+// Geographic blacklist entry for a specific region
+typedef struct {
+    int16_t grid_lat;           // Grid latitude (1-degree resolution)
+    int16_t grid_lon;           // Grid longitude (1-degree resolution)
+    time_t blacklisted_time;    // When this region was blacklisted
+    char reason[64];            // Error reason (e.g., "No coverage in this area")
+} ntrip_geo_blacklist_entry_t;
+
+// Geographic blacklist statistics
+typedef struct {
+    uint16_t services_with_blacklists;
+    uint16_t total_blacklisted_regions;
+    uint8_t max_entries_per_service;
+    double grid_size_degrees;
+} ntrip_geo_blacklist_stats_t;
+
+/**
+ * Geographic filtering statistics for coverage analysis
+ */
+typedef struct {
+    uint16_t total_services;                 // Total number of services analyzed
+    uint16_t services_with_coverage;         // Services covering user location
+    double coverage_percentage;              // Percentage of services with coverage
+    double nearest_service_distance_km;      // Distance to nearest service center
+    double farthest_service_distance_km;     // Distance to farthest service center
+} ntrip_geo_filtering_stats_t;
+
+/**
  * Compact failure storage for memory-constrained systems (6 bytes vs 80 bytes)
  * Provides 93% memory reduction for ESP32 deployments
  */
@@ -428,6 +464,140 @@ ntrip_atlas_error_t ntrip_atlas_get_compact_memory_stats(
     size_t* full_bytes,
     size_t* compact_bytes,
     size_t* savings_bytes
+);
+
+/**
+ * Geographic Blacklisting Functions
+ * Avoid repeated queries to services outside their coverage areas
+ */
+
+/**
+ * Initialize geographic blacklist system
+ */
+ntrip_atlas_error_t ntrip_atlas_init_geographic_blacklist(void);
+
+/**
+ * Add a geographic region to service blacklist (when service reports no coverage)
+ */
+ntrip_atlas_error_t ntrip_atlas_blacklist_service_region(
+    const char* provider,
+    double latitude,
+    double longitude,
+    const char* error_reason
+);
+
+/**
+ * Check if a service is blacklisted for a geographic region
+ */
+bool ntrip_atlas_is_service_geographically_blacklisted(
+    const char* provider,
+    double latitude,
+    double longitude
+);
+
+/**
+ * Remove geographic blacklist entry for a service
+ */
+ntrip_atlas_error_t ntrip_atlas_remove_geographic_blacklist(
+    const char* provider,
+    double latitude,
+    double longitude
+);
+
+/**
+ * Clear all geographic blacklist entries for a service
+ */
+ntrip_atlas_error_t ntrip_atlas_clear_service_geographic_blacklist(const char* provider);
+
+/**
+ * Clear all geographic blacklist entries (for testing/reset)
+ */
+ntrip_atlas_error_t ntrip_atlas_clear_all_geographic_blacklists(void);
+
+/**
+ * Get blacklist statistics for monitoring
+ */
+ntrip_atlas_error_t ntrip_atlas_get_geographic_blacklist_stats(
+    ntrip_geo_blacklist_stats_t* stats
+);
+
+/**
+ * Filter service list to remove geographically blacklisted services
+ */
+size_t ntrip_atlas_filter_geographically_blacklisted_services(
+    const ntrip_service_compact_t* services,
+    size_t service_count,
+    double latitude,
+    double longitude,
+    ntrip_service_compact_t* filtered_services,
+    size_t max_filtered
+);
+
+/**
+ * Geographic Filtering Functions
+ * Provides distance-based filtering using service coverage bounding boxes
+ */
+
+/**
+ * Check if user location is within service coverage bounds
+ */
+bool ntrip_atlas_is_location_within_service_coverage(
+    const ntrip_service_compact_t* service,
+    double user_latitude,
+    double user_longitude
+);
+
+/**
+ * Calculate distance from user to service coverage center
+ */
+double ntrip_atlas_calculate_distance_to_service_center(
+    const ntrip_service_compact_t* service,
+    double user_latitude,
+    double user_longitude
+);
+
+/**
+ * Calculate distance to nearest edge of service coverage area
+ */
+double ntrip_atlas_calculate_distance_to_coverage_edge(
+    const ntrip_service_compact_t* service,
+    double user_latitude,
+    double user_longitude
+);
+
+/**
+ * Filter services by geographic coverage
+ */
+size_t ntrip_atlas_filter_services_by_coverage(
+    const ntrip_service_compact_t* services,
+    size_t service_count,
+    double user_latitude,
+    double user_longitude,
+    double max_distance_km,
+    ntrip_service_compact_t* filtered_services,
+    size_t max_filtered
+);
+
+/**
+ * Filter and sort services by geographic proximity
+ */
+size_t ntrip_atlas_filter_and_sort_services_by_location(
+    ntrip_service_compact_t* services,
+    size_t service_count,
+    double user_latitude,
+    double user_longitude,
+    double max_distance_km
+);
+
+/**
+ * Get geographic coverage statistics
+ */
+ntrip_atlas_error_t ntrip_atlas_get_geographic_filtering_stats(
+    const ntrip_service_compact_t* services,
+    size_t service_count,
+    double user_latitude,
+    double user_longitude,
+    ntrip_geo_filtering_stats_t* stats
 );
 
 /**
