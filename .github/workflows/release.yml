@@ -1,0 +1,96 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    name: Create GitHub Release
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Extract version from tag
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Build release artifacts
+      run: |
+        mkdir -p release
+
+        # Create library distribution
+        tar -czf release/ntrip-atlas-${{ steps.version.outputs.version }}.tar.gz \
+          --exclude='.git*' \
+          --exclude='release' \
+          libntripatlas/ tools/ tests/ docs/ \
+          README.md DESIGN.md LICENSE-CODE LICENSING.md
+
+        # Create headers-only distribution for Arduino Library Manager
+        mkdir -p arduino-library/src
+        cp -r libntripatlas/include/* arduino-library/src/
+        cp libntripatlas/examples/arduino/library.properties arduino-library/
+        cp README.md arduino-library/
+        cp LICENSE-CODE arduino-library/LICENSE
+        tar -czf release/ntrip-atlas-arduino-${{ steps.version.outputs.version }}.tar.gz \
+          -C arduino-library .
+
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        echo "Release notes for NTRIP Atlas ${{ steps.version.outputs.version }}" > release_notes.md
+        echo "" >> release_notes.md
+        echo "## Changes in this release" >> release_notes.md
+        echo "" >> release_notes.md
+
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -n "$LAST_TAG" ]; then
+          git log ${LAST_TAG}..HEAD --oneline --pretty=format:"- %s" >> release_notes.md
+        else
+          echo "- Initial release of NTRIP Atlas library" >> release_notes.md
+          echo "- Platform abstraction layer for ESP32/Linux/Windows" >> release_notes.md
+          echo "- Memory-optimized service discovery" >> release_notes.md
+          echo "- Failure tracking with exponential backoff" >> release_notes.md
+          echo "- Arduino library support" >> release_notes.md
+        fi
+
+        echo "" >> release_notes.md
+        echo "## Service Database" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "The NTRIP service database is maintained separately at:" >> release_notes.md
+        echo "https://github.com/bruce/ntrip-atlas-data" >> release_notes.md
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.version.outputs.tag }}
+        name: NTRIP Atlas ${{ steps.version.outputs.version }}
+        body_path: release_notes.md
+        files: |
+          release/ntrip-atlas-${{ steps.version.outputs.version }}.tar.gz
+          release/ntrip-atlas-arduino-${{ steps.version.outputs.version }}.tar.gz
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify-data-repo:
+    runs-on: ubuntu-latest
+    name: Notify Data Repository
+    needs: create-release
+
+    steps:
+    - name: Trigger data repository sync
+      run: |
+        echo "New library release created: ${{ github.ref_name }}"
+        echo "Consider updating service database compatibility if needed"
+        # Future: Could trigger a workflow in the data repository
+        # via repository dispatch event if needed
