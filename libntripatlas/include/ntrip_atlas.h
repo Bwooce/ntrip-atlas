@@ -1167,6 +1167,74 @@ ntrip_atlas_error_t ntrip_atlas_get_spatial_index_stats(
 );
 
 /**
+ * Find services using spatial indexing with geographic bounds validation
+ *
+ * Combines O(1) spatial indexing with precise geographic coverage checking
+ * to solve the "German problem" - ensures services only appear in areas
+ * where they actually provide coverage.
+ *
+ * @param user_lat User latitude
+ * @param user_lon User longitude
+ * @param services Service database array
+ * @param service_count Total number of services
+ * @param found_services Output array for verified service indices
+ * @param max_services Maximum services to return
+ * @return Number of services found with verified coverage
+ */
+size_t ntrip_atlas_find_services_spatial_geographic(
+    double user_lat,
+    double user_lon,
+    const ntrip_service_compact_t* services,
+    size_t service_count,
+    uint8_t* found_services,
+    size_t max_services
+);
+
+/**
+ * Find best service using spatial-geographic lookup
+ *
+ * Higher-level convenience function that finds the best service
+ * from those with verified coverage at the user's location.
+ *
+ * @param user_lat User latitude
+ * @param user_lon User longitude
+ * @param services Service database array
+ * @param service_count Total number of services
+ * @param best_service Output for best service
+ * @return Error code
+ */
+ntrip_atlas_error_t ntrip_atlas_find_best_service_spatial_geographic(
+    double user_lat,
+    double user_lon,
+    const ntrip_service_compact_t* services,
+    size_t service_count,
+    ntrip_service_compact_t* best_service
+);
+
+/**
+ * Get statistics about spatial-geographic lookup performance
+ *
+ * Analyzes effectiveness of integrated approach by comparing
+ * spatial candidates vs verified services.
+ *
+ * @param user_lat User latitude
+ * @param user_lon User longitude
+ * @param services Service database
+ * @param service_count Total number of services
+ * @param spatial_candidates Output: services found by spatial indexing
+ * @param verified_services Output: services with verified coverage
+ * @return Error code
+ */
+ntrip_atlas_error_t ntrip_atlas_get_spatial_geographic_stats(
+    double user_lat,
+    double user_lon,
+    const ntrip_service_compact_t* services,
+    size_t service_count,
+    size_t* spatial_candidates,
+    size_t* verified_services
+);
+
+/**
  * Print spatial index debug information
  */
 void ntrip_atlas_print_spatial_index_debug(void);
