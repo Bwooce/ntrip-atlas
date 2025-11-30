@@ -7,7 +7,7 @@
 #define NTRIP_ATLAS_CONFIG_H
 
 // Database version compiled into library
-#define NTRIP_ATLAS_DATABASE_VERSION "20241129.01"
+#define NTRIP_ATLAS_DATABASE_VERSION "20241130.02"
 
 /**
  * Memory Optimization Profiles

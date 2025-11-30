@@ -22,7 +22,7 @@ extern "C" {
 
 // Library version
 #define NTRIP_ATLAS_VERSION_MAJOR 1
-#define NTRIP_ATLAS_VERSION_MINOR 0
+#define NTRIP_ATLAS_VERSION_MINOR 1
 #define NTRIP_ATLAS_VERSION_PATCH 0
 
 // Configuration limits

@@ -11,9 +11,11 @@
 #include <stdio.h>
 #include <string.h>
 
-// Current library capabilities
+// Current library capabilities (v1.1.0 - 20241130.02)
 #define CURRENT_SUPPORTED_FEATURES ( \
-    NTRIP_DB_FEATURE_COMPACT_FAILURES \
+    NTRIP_DB_FEATURE_COMPACT_FAILURES | \
+    NTRIP_DB_FEATURE_GEOGRAPHIC_INDEX | \
+    NTRIP_DB_FEATURE_EXTENDED_AUTH \
 )
 
 /**

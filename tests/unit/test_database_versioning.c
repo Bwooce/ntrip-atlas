@@ -120,10 +120,10 @@ bool test_feature_compatibility() {
         return false;
     }
 
-    // Test unsupported features
+    // Test supported features (v1.1.0 now includes geographic index)
     bool supports_geo = ntrip_atlas_supports_feature(NTRIP_DB_FEATURE_GEOGRAPHIC_INDEX);
-    if (supports_geo) {
-        printf("  ❌ Should not support geographic index yet\n");
+    if (!supports_geo) {
+        printf("  ❌ Should support geographic index in v1.1.0\n");
         return false;
     }
 
