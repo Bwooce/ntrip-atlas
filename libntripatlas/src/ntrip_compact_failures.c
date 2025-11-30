@@ -53,7 +53,7 @@ ntrip_atlas_error_t ntrip_atlas_init_compact_failure_tracking(
     size_t mapping_count
 ) {
     if (!service_mapping || mapping_count == 0 || mapping_count > NTRIP_COMPACT_MAX_SERVICES) {
-        return NTRIP_ATLAS_ERROR_INVALID_PARAMETER;
+        return NTRIP_ATLAS_ERROR_INVALID_PARAM;
     }
 
     // Store service mapping
@@ -91,7 +91,7 @@ uint8_t ntrip_atlas_get_service_index(const char* service_id) {
  */
 ntrip_atlas_error_t ntrip_atlas_record_compact_failure(uint8_t service_index) {
     if (!g_compact_failure_state.initialized || service_index >= NTRIP_COMPACT_MAX_SERVICES) {
-        return NTRIP_ATLAS_ERROR_INVALID_PARAMETER;
+        return NTRIP_ATLAS_ERROR_INVALID_PARAM;
     }
 
     ntrip_compact_failure_t* failure = &g_compact_failure_state.failures[service_index];
@@ -122,7 +122,7 @@ ntrip_atlas_error_t ntrip_atlas_record_compact_failure(uint8_t service_index) {
  */
 ntrip_atlas_error_t ntrip_atlas_record_compact_success(uint8_t service_index) {
     if (!g_compact_failure_state.initialized || service_index >= NTRIP_COMPACT_MAX_SERVICES) {
-        return NTRIP_ATLAS_ERROR_INVALID_PARAMETER;
+        return NTRIP_ATLAS_ERROR_INVALID_PARAM;
     }
 
     ntrip_compact_failure_t* failure = &g_compact_failure_state.failures[service_index];
@@ -185,7 +185,7 @@ ntrip_atlas_error_t ntrip_atlas_expand_compact_failure(
     ntrip_service_failure_t* full
 ) {
     if (!compact || !full) {
-        return NTRIP_ATLAS_ERROR_INVALID_PARAMETER;
+        return NTRIP_ATLAS_ERROR_INVALID_PARAM;
     }
 
     // Find service ID from index
