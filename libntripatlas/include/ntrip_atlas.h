@@ -198,6 +198,36 @@ typedef struct {
 } ntrip_failure_config_t;
 
 /**
+ * Compact service structure for runtime discovery
+ * Reduces memory usage from 248 bytes to 46 bytes (81.5% reduction)
+ * Optimized for ESP32 deployment and streaming discovery
+ */
+typedef struct __attribute__((packed)) {
+    // Connection info (35 bytes)
+    char hostname[32];          // Most NTRIP hostnames are short
+    uint16_t port;              // TCP port
+    uint8_t flags;              // Packed boolean flags (see NTRIP_FLAG_* below)
+
+    // Geographic coverage (8 bytes - int16 with 0.01 degree precision)
+    int16_t lat_min_deg100;     // Coverage bounds: -90.00 to 90.00 × 100
+    int16_t lat_max_deg100;
+    int16_t lon_min_deg100;     // Coverage bounds: -180.00 to 180.00 × 100
+    int16_t lon_max_deg100;
+
+    // Service metadata (3 bytes)
+    uint8_t provider_index;     // Index into shared provider string table
+    uint8_t network_type;       // government/commercial/community
+    uint8_t quality_rating;     // 1-5 star rating
+} ntrip_service_compact_t;      // Total: 46 bytes
+
+// Compact service flag definitions
+#define NTRIP_FLAG_SSL              (1 << 0)  // HTTPS/SSL connection
+#define NTRIP_FLAG_AUTH_BASIC       (1 << 1)  // Basic authentication
+#define NTRIP_FLAG_AUTH_DIGEST      (1 << 2)  // Digest authentication
+#define NTRIP_FLAG_REQUIRES_REG     (1 << 3)  // Requires registration
+#define NTRIP_FLAG_FREE_ACCESS      (1 << 4)  // Free/community access
+
+/**
  * Compact failure storage for memory-constrained systems (6 bytes vs 80 bytes)
  * Provides 93% memory reduction for ESP32 deployments
  */
@@ -369,6 +399,36 @@ ntrip_atlas_error_t ntrip_atlas_get_credentials(const ntrip_credential_store_t* 
  */
 bool ntrip_atlas_is_service_accessible(const ntrip_service_config_t* service,
                                       const ntrip_credential_store_t* store);
+
+/**
+ * Compact Service Runtime Optimization Functions
+ */
+
+/**
+ * Convert full service config to compact format (81.5% memory reduction)
+ */
+ntrip_atlas_error_t ntrip_atlas_compress_service(
+    const ntrip_service_config_t* full,
+    ntrip_service_compact_t* compact
+);
+
+/**
+ * Convert compact service back to full format (for compatibility)
+ */
+ntrip_atlas_error_t ntrip_atlas_expand_service(
+    const ntrip_service_compact_t* compact,
+    ntrip_service_config_t* full
+);
+
+/**
+ * Get memory usage statistics for compact vs full services
+ */
+ntrip_atlas_error_t ntrip_atlas_get_compact_memory_stats(
+    size_t service_count,
+    size_t* full_bytes,
+    size_t* compact_bytes,
+    size_t* savings_bytes
+);
 
 /**
  * Test connectivity to a specific service

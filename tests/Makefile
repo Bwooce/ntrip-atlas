@@ -10,7 +10,7 @@ TEST_MEMORY = memory
 TEST_INTEGRATION = integration
 
 # Test executables
-UNIT_TESTS = $(TEST_UNIT)/test_distance $(TEST_UNIT)/test_compact_failures $(TEST_UNIT)/test_database_versioning $(TEST_UNIT)/test_credential_management
+UNIT_TESTS = $(TEST_UNIT)/test_distance $(TEST_UNIT)/test_compact_failures $(TEST_UNIT)/test_database_versioning $(TEST_UNIT)/test_credential_management $(TEST_UNIT)/test_compact_services
 MEMORY_TESTS = $(TEST_MEMORY)/test_esp32_memory
 INTEGRATION_TESTS =
 
@@ -32,6 +32,9 @@ $(TEST_UNIT)/test_database_versioning: $(TEST_UNIT)/test_database_versioning.c .
 $(TEST_UNIT)/test_credential_management: $(TEST_UNIT)/test_credential_management.c ../libntripatlas/src/ntrip_credential_management.c
 	$(CC) $(CFLAGS) -I../libntripatlas/include $^ -o $@ $(MATHLIB)
 
+$(TEST_UNIT)/test_compact_services: $(TEST_UNIT)/test_compact_services.c ../libntripatlas/src/ntrip_compact_services.c
+	$(CC) $(CFLAGS) -I../libntripatlas/include $^ -o $@ $(MATHLIB)
+
 $(TEST_MEMORY)/test_esp32_memory: $(TEST_MEMORY)/test_esp32_memory.c
 	$(CC) $(CFLAGS) $< -o $@ $(MATHLIB)
 
@@ -47,6 +50,7 @@ test: $(ALL_TESTS)
 	@$(TEST_UNIT)/test_compact_failures || exit 1
 	@$(TEST_UNIT)/test_database_versioning || exit 1
 	@$(TEST_UNIT)/test_credential_management || exit 1
+	@$(TEST_UNIT)/test_compact_services || exit 1
 	@echo
 	@echo "Memory Tests:"
 	@echo "-------------"
