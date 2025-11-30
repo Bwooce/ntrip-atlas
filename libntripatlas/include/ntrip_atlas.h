@@ -554,6 +554,30 @@ ntrip_atlas_error_t ntrip_atlas_get_version_info(
 );
 
 /**
+ * Create database header with specified parameters
+ * @param header Output header structure
+ * @param database_version Database version (YYYYMMDD format)
+ * @param sequence_number Daily sequence number (01-99)
+ * @param service_count Total number of services
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_create_database_header(
+    ntrip_db_header_t* header,
+    uint32_t database_version,
+    uint8_t sequence_number,
+    uint16_t service_count
+);
+
+/**
+ * Validate database header format and values
+ * @param header Database header to validate
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_validate_database_header(
+    const ntrip_db_header_t* header
+);
+
+/**
  * Check if library supports specific feature
  * @param feature_flag Feature flag to check
  * @return true if feature is supported

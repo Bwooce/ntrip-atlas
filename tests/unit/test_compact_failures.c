@@ -16,7 +16,7 @@
 #include "../../libntripatlas/include/ntrip_atlas.h"
 
 // Test service mapping for our 32 services
-static const ntrip_service_index_entry_t test_service_mapping[] = {
+static const ntrip_service_index_entry_t test_service_index[] = {
     {"rtk2go", 0},
     {"pointone-polaris", 1},
     {"australia-ga", 2},
@@ -51,7 +51,7 @@ static const ntrip_service_index_entry_t test_service_mapping[] = {
     {"usa-ohio-odot", 31},
 };
 
-#define TEST_SERVICE_COUNT (sizeof(test_service_mapping) / sizeof(test_service_mapping[0]))
+#define TEST_SERVICE_COUNT (sizeof(test_service_index) / sizeof(test_service_index[0]))
 
 // Test structure size and memory usage
 bool test_memory_optimization() {
@@ -96,7 +96,7 @@ bool test_service_mapping() {
 
     // Initialize compact failure tracking
     ntrip_atlas_error_t result = ntrip_atlas_init_compact_failure_tracking(
-        test_service_mapping, TEST_SERVICE_COUNT);
+        test_service_index, TEST_SERVICE_COUNT);
 
     if (result != NTRIP_ATLAS_SUCCESS) {
         printf("  ❌ Failed to initialize compact failure tracking\n");
@@ -264,6 +264,12 @@ bool test_structure_conversion() {
 // Test discovery integration - blocked services are skipped
 bool test_discovery_integration() {
     printf("Testing discovery integration (skip blocked services)...\n");
+
+    // Reset service states (might be blocked from previous tests)
+    uint8_t polaris_index = ntrip_atlas_get_service_index("pointone-polaris");
+    uint8_t australia_index = ntrip_atlas_get_service_index("australia-ga");
+    ntrip_atlas_record_compact_success(polaris_index);
+    ntrip_atlas_record_compact_success(australia_index);
 
     // Create mock service list
     ntrip_service_config_t test_services[] = {

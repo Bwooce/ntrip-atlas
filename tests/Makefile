@@ -41,6 +41,8 @@ test: $(ALL_TESTS)
 	@echo "Unit Tests:"
 	@echo "-----------"
 	@$(TEST_UNIT)/test_distance || exit 1
+	@$(TEST_UNIT)/test_compact_failures || exit 1
+	@$(TEST_UNIT)/test_database_versioning || exit 1
 	@echo
 	@echo "Memory Tests:"
 	@echo "-------------"

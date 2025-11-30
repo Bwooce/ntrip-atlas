@@ -12,7 +12,7 @@
 #include <time.h>
 
 // Maximum number of services supported in compact mode
-#define NTRIP_COMPACT_MAX_SERVICES 256
+#define NTRIP_COMPACT_MAX_SERVICES 255
 #define NTRIP_COMPACT_INVALID_INDEX 255
 
 // Global state for compact failure tracking

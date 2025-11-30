@@ -265,10 +265,6 @@ ntrip_atlas_error_t ntrip_atlas_validate_database_header(
  * Initialize NTRIP Atlas with specific feature set
  */
 ntrip_atlas_error_t ntrip_atlas_init_features(uint8_t feature_flags) {
-    // Store enabled features globally
-    static uint8_t g_enabled_features = 0;
-    g_enabled_features = feature_flags;
-
     // Initialize components based on enabled features
     if (feature_flags & NTRIP_DB_FEATURE_COMPACT_FAILURES) {
         // Compact failures already initialized in system
@@ -281,6 +277,9 @@ ntrip_atlas_error_t ntrip_atlas_init_features(uint8_t feature_flags) {
     if (feature_flags & NTRIP_DB_FEATURE_TIERED_LOADING) {
         // Tiered loading initialization handled separately
     }
+
+    // Feature flags processed successfully
+    (void)feature_flags; // Mark as used for future feature expansion
 
     return NTRIP_ATLAS_SUCCESS;
 }

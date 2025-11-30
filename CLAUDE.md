@@ -382,3 +382,4 @@ Eventually could add optional live service monitoring:
 
 **Remember**: The core library must work without any live monitoring dependencies.
 - remember to check the github actions 5 minutes after every commit using the command line tools, and fix problems that appear
+- remember to run the code compilation and tests locally before any git commits are done
