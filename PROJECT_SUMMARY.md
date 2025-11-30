@@ -64,14 +64,13 @@ ntrip-atlas-data/                      # Service database repository
 │   ├── global/                        # Worldwide services
 │   │   ├── rtk2go.yaml               # RTK2go community network
 │   │   └── pointone-polaris.yaml     # Point One Navigation commercial service
-│   ├── europe/                        # European services
+│   ├── emea/                          # Europe, Middle East, Africa
 │   │   ├── euref-ip.yaml             # European government network (EUREF-IP)
 │   │   └── finland-finnref.yaml     # Finnish government service (FinnRef)
-│   ├── asia-pacific/                  # Asia Pacific region
+│   ├── apac/                          # Asia Pacific region
 │   │   └── australia-ga.yaml         # Geoscience Australia government service
-│   ├── americas/                      # North and South America
-│   │   └── usa-massachusetts-macors.yaml # Massachusetts state network
-│   └── africa/                        # African regional services (empty currently)
+│   └── americas/                      # North and South America
+│       └── usa-massachusetts-macors.yaml # Massachusetts state network
 ```
 
 ## Key Design Decisions
@@ -114,7 +113,7 @@ char parse_buffer[2048];                  // 2KB (reused)
 ## Sample YAML Service Definition
 
 ```yaml
-# data/asia-pacific/australia-ga.yaml
+# data/apac/australia-ga.yaml
 service:
   id: "geoscience_australia"
   name: "Geoscience Australia GNSS Service"

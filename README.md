@@ -119,10 +119,9 @@ ntrip-atlas/
 ntrip-atlas-data/
 ├── data/                     # Community-maintained service database
 │   ├── global/              # Worldwide services (RTK2go, IGS)
-│   ├── europe/              # European services
-│   ├── asia-pacific/        # Asia Pacific region
-│   ├── americas/            # North and South America
-│   └── africa/              # African regional services
+│   ├── emea/                # Europe, Middle East, Africa
+│   ├── apac/                # Asia Pacific region
+│   └── americas/            # North and South America
 ├── VERSION                   # Database version tracking
 └── README.md                # Service contribution guidelines
 ```
