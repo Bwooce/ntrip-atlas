@@ -52,9 +52,8 @@ jobs:
 
     - name: Test YAML validator
       run: |
-        # Test validator against sample data from data repository
-        python3 tools/validators/service_validator.py --help
-        echo "YAML validator tool is functional"
+        # Test validator functionality by running without arguments (shows usage)
+        python3 tools/validators/service_validator.py 2>&1 | grep -q "Usage:" && echo "YAML validator tool is functional"
 
   lint:
     runs-on: ubuntu-latest
