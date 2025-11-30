@@ -55,7 +55,12 @@ typedef enum {
     NTRIP_ATLAS_ERROR_TIMEOUT = -8,
     NTRIP_ATLAS_ERROR_PLATFORM = -9,
     NTRIP_ATLAS_ERROR_SERVICE_FAILED = -10,
-    NTRIP_ATLAS_ERROR_ALL_SERVICES_FAILED = -11
+    NTRIP_ATLAS_ERROR_ALL_SERVICES_FAILED = -11,
+    // Database versioning errors
+    NTRIP_ATLAS_ERROR_INVALID_MAGIC = -12,       // Database magic number mismatch
+    NTRIP_ATLAS_ERROR_VERSION_TOO_OLD = -13,     // Library version too old for database
+    NTRIP_ATLAS_ERROR_INCOMPATIBLE_VERSION = -14, // Incompatible schema version
+    NTRIP_ATLAS_ERROR_MISSING_FEATURE = -15      // Required feature not supported
 } ntrip_atlas_error_t;
 
 /**
@@ -452,6 +457,113 @@ bool ntrip_atlas_should_skip_service(const char* service_id);
  * Clear all failure history (for testing or reset purposes)
  */
 ntrip_atlas_error_t ntrip_atlas_clear_failure_history(void);
+
+/**
+ * Database Versioning and Forward Compatibility
+ * Ensures smooth upgrades and clear compatibility handling
+ */
+
+// Database file magic numbers for format verification
+#define NTRIP_ATLAS_DB_MAGIC_V1     0x4E545250  // "NTRP" in ASCII
+#define NTRIP_ATLAS_SCHEMA_MAGIC    0x53434845  // "SCHE" in ASCII
+
+// Current library schema version
+#define NTRIP_ATLAS_SCHEMA_MAJOR    1
+#define NTRIP_ATLAS_SCHEMA_MINOR    1
+
+// Database feature flags (bitwise)
+#define NTRIP_DB_FEATURE_COMPACT_FAILURES  0x01  // Compact failure tracking
+#define NTRIP_DB_FEATURE_GEOGRAPHIC_INDEX   0x02  // Geographic indexing
+#define NTRIP_DB_FEATURE_TIERED_LOADING     0x04  // Tiered data loading
+#define NTRIP_DB_FEATURE_EXTENDED_AUTH      0x08  // Extended auth methods
+#define NTRIP_DB_FEATURE_RESERVED_1         0x10  // Future use
+#define NTRIP_DB_FEATURE_RESERVED_2         0x20  // Future use
+#define NTRIP_DB_FEATURE_RESERVED_3         0x40  // Future use
+#define NTRIP_DB_FEATURE_EXPERIMENTAL       0x80  // Experimental features
+
+/**
+ * Database header for version verification and compatibility
+ */
+typedef struct __attribute__((packed)) {
+    uint32_t magic_number;      // 4 bytes - NTRP magic
+    uint16_t schema_major;      // 2 bytes - Major schema version
+    uint16_t schema_minor;      // 2 bytes - Minor schema version
+    uint32_t database_version;  // 4 bytes - YYYYMMDD date
+    uint8_t sequence_number;    // 1 byte - Daily sequence (01-99)
+    uint8_t feature_flags;      // 1 byte - Feature compatibility flags
+    uint16_t service_count;     // 2 bytes - Total services in database
+} ntrip_db_header_t;           // 16 bytes total
+
+/**
+ * Version compatibility levels
+ */
+typedef enum {
+    NTRIP_COMPAT_COMPATIBLE,      // Fully compatible
+    NTRIP_COMPAT_BACKWARD_ONLY,   // Can read, may miss new features
+    NTRIP_COMPAT_UPGRADE_NEEDED,  // Library needs upgrade
+    NTRIP_COMPAT_INCOMPATIBLE     // Complete incompatibility
+} ntrip_compatibility_t;
+
+/**
+ * Library and database version information
+ */
+typedef struct {
+    uint16_t library_schema_major;
+    uint16_t library_schema_minor;
+    uint32_t database_version;
+    uint8_t supported_features;
+    bool compact_failure_support;
+    bool geographic_index_support;
+    bool tiered_loading_support;
+} ntrip_version_info_t;
+
+/**
+ * Check database compatibility with current library
+ * @param db_header Database header to check
+ * @param compatibility Output compatibility level
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_check_database_compatibility(
+    const ntrip_db_header_t* db_header,
+    ntrip_compatibility_t* compatibility
+);
+
+/**
+ * Get current library version information
+ * @param version_info Output version information
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_get_version_info(
+    ntrip_version_info_t* version_info
+);
+
+/**
+ * Check if library supports specific feature
+ * @param feature_flag Feature flag to check
+ * @return true if feature is supported
+ */
+bool ntrip_atlas_supports_feature(uint8_t feature_flag);
+
+/**
+ * Get human-readable compatibility message
+ * @param compatibility Compatibility level
+ * @return Descriptive message string
+ */
+const char* ntrip_atlas_get_compatibility_message(ntrip_compatibility_t compatibility);
+
+/**
+ * Print version information to stdout (for debugging)
+ */
+void ntrip_atlas_print_version_info(void);
+
+/**
+ * Initialize with version checking and graceful degradation
+ * @param db_header Database header (NULL to skip version check)
+ * @return Success/error status with version-specific errors
+ */
+ntrip_atlas_error_t ntrip_atlas_init_with_version_check(
+    const ntrip_db_header_t* db_header
+);
 
 /**
  * Get default exponential backoff configuration
