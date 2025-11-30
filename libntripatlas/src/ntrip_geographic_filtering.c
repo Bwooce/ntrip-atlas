@@ -8,6 +8,7 @@
  * Licensed under MIT License
  */
 
+#define _USE_MATH_DEFINES  // For M_PI on Windows/MSVC
 #include "ntrip_atlas.h"
 #include <string.h>
 #include <stdlib.h>

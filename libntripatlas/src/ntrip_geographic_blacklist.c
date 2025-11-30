@@ -11,7 +11,9 @@
 #include "ntrip_atlas.h"
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 // Maximum geographic blacklist entries per service
 #define MAX_BLACKLIST_ENTRIES_PER_SERVICE 8
@@ -305,11 +307,12 @@ size_t ntrip_atlas_filter_geographically_blacklisted_services(
     size_t filtered_count = 0;
 
     for (size_t i = 0; i < service_count && filtered_count < max_filtered; i++) {
-        // Get provider name for this service (would need integration with provider table)
-        const char* provider = "Unknown"; // TODO: Get from provider table using provider_index
+        // Use service index as provider identifier for geographic blacklist lookup
+        char provider_id[16];
+        snprintf(provider_id, sizeof(provider_id), "service_%zu", i);
 
         // Skip if geographically blacklisted
-        if (!ntrip_atlas_is_service_geographically_blacklisted(provider, latitude, longitude)) {
+        if (!ntrip_atlas_is_service_geographically_blacklisted(provider_id, latitude, longitude)) {
             filtered_services[filtered_count] = services[i];
             filtered_count++;
         }
