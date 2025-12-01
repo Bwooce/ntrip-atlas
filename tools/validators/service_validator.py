@@ -20,11 +20,16 @@ class ServiceValidator:
     """Validates NTRIP service YAML files"""
 
     REQUIRED_SCHEMA_VERSION = "1.0.0"
-    # ISO 3166-1 alpha-3 country codes (common subset) + regional codes
+    # ISO 3166-1 alpha-2 and alpha-3 country codes (common subset) + regional codes
     VALID_COUNTRIES = {
         # Regional groupings
         "GLOBAL", "EMEA", "APAC", "AMER",
-        # Common ISO 3166-1 alpha-3 codes
+        # ISO 3166-1 alpha-2 codes (common)
+        "AR", "AU", "AT", "BE", "BR", "CA", "CL", "CN", "CO", "CZ", "DK", "EG",
+        "FI", "FR", "DE", "GR", "HK", "IN", "ID", "IL", "IT", "JP", "MY", "MX",
+        "NL", "NZ", "NO", "PE", "PH", "PL", "PT", "RO", "RU", "SG", "ZA", "KR",
+        "ES", "SE", "CH", "TW", "TH", "TR", "UA", "GB", "US", "VN",
+        # ISO 3166-1 alpha-3 codes
         "AFG", "AGO", "ALB", "AND", "ARE", "ARG", "ARM", "AUS", "AUT", "AZE",
         "BEL", "BGD", "BGR", "BHR", "BIH", "BLR", "BOL", "BRA", "BTN", "BWA",
         "CAN", "CHE", "CHL", "CHN", "COL", "CRI", "CUB", "CYP", "CZE",
@@ -54,6 +59,12 @@ class ServiceValidator:
     def validate_file(self, filepath: str, test_connectivity: bool = False) -> bool:
         """Validate a single YAML service file"""
         try:
+            # Skip special metadata files that don't contain service definitions
+            filename = os.path.basename(filepath)
+            if filename.startswith('excluded_') or filename.endswith('_notes.yaml') or filename == 'schema.yaml':
+                print(f"Skipping metadata file {filepath}...")
+                return True
+
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = yaml.safe_load(f)
 
@@ -105,27 +116,15 @@ class ServiceValidator:
     def _validate_schema(self, data: Dict[str, Any]) -> None:
         """Validate schema version and top-level structure"""
         # Required top-level fields
-        required_fields = ['schema_version', 'last_updated', 'service']
+        required_fields = ['service']
         for field in required_fields:
             if field not in data:
                 self.errors.append(f"Missing required field: {field}")
 
-        # Schema version check
-        if 'schema_version' in data:
-            if data['schema_version'] != self.REQUIRED_SCHEMA_VERSION:
-                self.errors.append(f"Schema version {data['schema_version']} != required {self.REQUIRED_SCHEMA_VERSION}")
-
-        # Date format validation
-        if 'last_updated' in data:
-            try:
-                datetime.fromisoformat(data['last_updated'].replace('Z', '+00:00'))
-            except ValueError:
-                self.errors.append(f"Invalid last_updated date format: {data['last_updated']}")
-
     def _validate_service(self, service: Dict[str, Any]) -> None:
         """Validate service configuration"""
         # Required service fields
-        required_fields = ['id', 'name', 'country', 'provider', 'organization_type', 'endpoints', 'coverage', 'authentication']
+        required_fields = ['id', 'country', 'provider', 'endpoints', 'coverage', 'authentication', 'quality']
         for field in required_fields:
             if field not in service:
                 self.errors.append(f"Missing required service field: {field}")
@@ -140,11 +139,6 @@ class ServiceValidator:
         if 'country' in service:
             if service['country'] not in self.VALID_COUNTRIES:
                 self.warnings.append(f"Unknown country code: {service['country']} (consider adding to validator)")
-
-        # Organization type validation
-        if 'organization_type' in service:
-            if service['organization_type'] not in self.VALID_ORG_TYPES:
-                self.errors.append(f"Invalid organization_type: {service['organization_type']}")
 
         # Endpoints validation
         if 'endpoints' in service:
@@ -172,29 +166,30 @@ class ServiceValidator:
             prefix = f"endpoint[{i}]"
 
             # Required endpoint fields
-            required_fields = ['protocol', 'hostname', 'port']
+            required_fields = ['hostname', 'port']
             for field in required_fields:
                 if field not in endpoint:
                     self.errors.append(f"{prefix}: Missing required field: {field}")
 
-            # Protocol validation
-            if 'protocol' in endpoint:
-                protocol = endpoint['protocol']
-                if protocol not in self.VALID_PROTOCOLS:
-                    self.errors.append(f"{prefix}: Invalid protocol: {protocol}")
+            # SSL field should be present (defaults to false if missing)
+            if 'ssl' not in endpoint:
+                self.warnings.append(f"{prefix}: Missing 'ssl' field (defaults to false)")
 
-                # SSL consistency check
-                if 'ssl' in endpoint:
-                    ssl_expected = protocol == 'https'
-                    ssl_actual = endpoint['ssl']
-                    if ssl_expected != ssl_actual:
-                        self.warnings.append(f"{prefix}: SSL flag ({ssl_actual}) inconsistent with protocol ({protocol})")
+            # SSL validation
+            if 'ssl' in endpoint:
+                ssl = endpoint['ssl']
+                if not isinstance(ssl, bool):
+                    self.errors.append(f"{prefix}: SSL must be boolean, got: {type(ssl).__name__}")
 
             # Hostname validation
             if 'hostname' in endpoint:
                 hostname = endpoint['hostname']
                 if not re.match(r'^[a-zA-Z0-9.-]+$', hostname):
                     self.errors.append(f"{prefix}: Invalid hostname format: {hostname}")
+
+                # Check hostname length limit (31 chars for compact storage)
+                if len(hostname) > 31:
+                    self.errors.append(f"{prefix}: Hostname too long (max 31 chars): {hostname} ({len(hostname)} chars)")
 
             # Port validation
             if 'port' in endpoint:
@@ -245,29 +240,48 @@ class ServiceValidator:
 
         # Registration validation
         if 'registration_required' in auth and auth['registration_required']:
-            if 'registration_url' not in auth:
-                self.errors.append("registration_url required when registration_required=true")
+            if 'registration_url' not in auth or not auth['registration_url']:
+                self.warnings.append("registration_url recommended when registration_required=true")
 
         # URL validation
         for url_field in ['registration_url', 'terms_url']:
             if url_field in auth:
                 url = auth[url_field]
+                # Skip empty URLs
+                if not url:
+                    continue
                 try:
                     parsed = urllib.parse.urlparse(url)
-                    if not parsed.scheme or not parsed.netloc:
-                        self.errors.append(f"Invalid {url_field}: {url}")
+                    # Accept http, https, and mailto URLs
+                    if parsed.scheme not in ['http', 'https', 'mailto']:
+                        self.errors.append(f"Invalid {url_field} scheme: {url} (expected http, https, or mailto)")
+                    elif parsed.scheme in ['http', 'https'] and not parsed.netloc:
+                        self.errors.append(f"Invalid {url_field}: {url} (missing hostname)")
                 except Exception:
                     self.errors.append(f"Invalid {url_field}: {url}")
 
     def _validate_quality(self, quality: Dict[str, Any]) -> None:
         """Validate quality ratings"""
-        rating_fields = ['reliability_rating', 'accuracy_rating', 'coverage_rating', 'support_rating', 'ease_of_use']
+        # Required quality fields
+        required_fields = ['reliability_rating', 'accuracy_rating', 'network_type']
+        for field in required_fields:
+            if field not in quality:
+                self.errors.append(f"Quality missing required field: {field}")
 
+        # Rating validation
+        rating_fields = ['reliability_rating', 'accuracy_rating']
         for field in rating_fields:
             if field in quality:
                 rating = quality[field]
                 if not isinstance(rating, int) or rating < 1 or rating > 5:
                     self.errors.append(f"Quality {field} must be integer 1-5, got: {rating}")
+
+        # Network type validation
+        if 'network_type' in quality:
+            network_type = quality['network_type']
+            valid_types = ['government', 'commercial', 'community']
+            if network_type not in valid_types:
+                self.errors.append(f"Invalid network_type: {network_type} (must be one of {valid_types})")
 
     def _validate_examples(self, examples: List[Dict[str, Any]]) -> None:
         """Validate example mountpoints"""
