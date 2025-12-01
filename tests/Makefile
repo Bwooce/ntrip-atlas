@@ -22,10 +22,10 @@ all: generate-services $(ALL_TESTS)
 # Generate C code from YAML service definitions
 generate-services:
 	@echo "Generating services from YAML..."
-	@python3 ../tools/generators/yaml_to_c.py ../data/ ../libntripatlas/src/generated/
+	@python3 ../tools/generators/yaml_to_c.py ../data-repo/ ../libntripatlas/src/generated/
 
 # Generated services dependency
-../libntripatlas/src/generated/ntrip_generated_services.c: ../data/**/*.yaml
+../libntripatlas/src/generated/ntrip_generated_services.c: ../data-repo/**/*.yaml
 	@$(MAKE) generate-services
 
 # Build individual test suites

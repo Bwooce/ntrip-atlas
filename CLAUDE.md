@@ -37,38 +37,34 @@ All platform access goes through function pointers in `ntrip_platform_t`.
 ## Architecture Reminders
 
 ### Repository Structure (CRITICAL)
-**ALL SERVICE DATA belongs in the separate ntrip-atlas-data repository!**
+**ALL SERVICE DATA belongs in the data-repo submodule which points to ntrip-atlas-data repository!**
 
 ```
 ntrip-atlas/              # Main library repository
 ├── libntripatlas/        # Core C library
 ├── tools/                # Development tools
 ├── tests/                # Unit tests
-└── data/                 # ONLY for development/testing (5 services max)
+└── data-repo/            # Git submodule → ntrip-atlas-data.git (AUTHORITATIVE)
+    ├── schema.yaml       # YAML service definition schema
+    ├── VERSION           # YYYYMMDD.sequence format
+    ├── global/           # Global services (RTK2go, Point One Polaris)
+    ├── EMEA/            # Europe, Middle East, Africa (27+ services)
+    ├── APAC/            # Asia Pacific (11+ services)
+    └── AMER/            # Americas (33+ services)
 
-ntrip-atlas-data/         # Service database repository (THIS IS WHERE ALL REAL DATA GOES)
-├── data/
-│   ├── VERSION           # YYYYMMDD.sequence format
-│   ├── global/           # RTK2go, IGS network
-│   ├── emea/            # Europe, Middle East, Africa (10+ services)
-│   ├── apac/            # Asia Pacific (3+ services)
-│   ├── americas/        # North & South America (12+ services)
-│   └── africa/          # African regional services (1+ services)
-└── README.md             # Service contribution guidelines
+~/dev/ntrip-atlas-data/   # Standalone checkout for direct work (KEEP IN SYNC)
 ```
 
-**⚠️ CURRENT IMPLEMENTATION STATUS**:
-- Main repo `data/` directory: 5 services using current schema format with hierarchical coverage
-- Service data repo submodule `data-repo/`: ALL 33 services using different schema format
-- Our generator expects: `quality: {network_type: "government"}`
-- Data repo services use: `organization_type: "government"` (different field names)
-- Build process uses main repo `data/` for now (5 services work with current generator)
+**✅ CURRENT IMPLEMENTATION STATUS**:
+- **data-repo/**: Contains ALL 70+ services using unified schema format
+- **Schema standardized**: All services use consistent YAML format with hierarchical coverage
+- **Build process**: Uses data-repo/ for complete service database generation
+- **Sync strategy**: Work in data-repo/, keep standalone checkout in sync when needed
 
-**⚠️ TODO - Schema Standardization**:
-- Standardize all 33 services to use consistent YAML schema format
-- Add hierarchical coverage fields to all services in data-repo
-- Update generator to handle the unified schema format
-- This will enable full 33-service database generation
+**🚫 DEPRECATED/INCORRECT**:
+- Any `data/` directory in main repo is temporary/test data only
+- If found, copy valuable content to data-repo/ and remove it
+- Never work in data/ - always use data-repo/ submodule
 
 ### Geographic Coverage Strategy
 Services YAML should include geographic bounding boxes:
@@ -88,10 +84,28 @@ coverage:
 
 ## Build System Guidelines
 
+### Data Repository Workflow (CRITICAL)
+```bash
+# CORRECT: Always work in the submodule
+cd data-repo/
+# Add/edit YAML files
+# git add . && git commit -m "Add new services"
+# git push origin main
+cd ..
+# git add data-repo && git commit -m "Update data submodule"
+
+# SYNC: Keep standalone checkout updated when needed
+cd ~/dev/ntrip-atlas-data/
+git pull origin main
+
+# NEVER: Work directly in data/ directory
+# If files found there: copy to data-repo/, then rm -rf data/
+```
+
 ### Code Generation Workflow
 ```bash
 # YAML services -> C structures (build time)
-tools/generators/yaml_to_c.py data/ -> libntripatlas/src/generated/
+tools/generators/yaml_to_c.py data-repo/ -> libntripatlas/src/generated/
 
 # Include generated data in compilation
 #include "ntrip_services_data.h"
@@ -133,17 +147,52 @@ Use community assessment for static ratings:
 - **2 stars**: Experimental or intermittent services
 - **1 star**: Legacy or unreliable services
 
-### Required Service Information
-Every service YAML must include:
+### Current YAML Schema Format (v1.0)
+Every service YAML must follow this exact format (see data-repo/schema.yaml):
 ```yaml
 service:
-  id: "unique_identifier"           # For credential storage key
-  provider: "Organization Name"
-  country: "ISO-3166"
-  endpoints: [...]                  # hostname, port, ssl
-  coverage: {...}                   # geographic boundaries
-  authentication: {...}             # method, registration_url
-  quality: {...}                    # reliability_rating, accuracy_rating
+  id: "unique_identifier"           # For credential storage key (lowercase, underscores)
+  provider: "Organization Name"     # Full organization name
+  country: "US"                     # ISO 3166-1 alpha-2 country code
+
+  endpoints:
+    - hostname: "hostname.domain"   # Max 31 characters for embedded compatibility
+      port: 2101                    # Standard NTRIP port
+      ssl: false                    # Boolean for HTTPS support
+
+  coverage:
+    bounding_box:
+      lat_min: -90.0                # Decimal degrees
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 180.0
+
+    hierarchical:                   # Quality ratings by geographic scale (1-5)
+      regional: 4                   # Cross-country coverage quality
+      national: 5                   # National coverage quality
+      state: 4                      # State/province coverage quality
+      local: 3                      # Local area coverage quality
+
+  authentication:
+    method: "basic"                 # "none", "basic", or "digest"
+    required: true                  # Boolean
+    registration_required: true     # Boolean
+    registration_url: "https://..."# If registration required
+
+  quality:
+    reliability_rating: 5           # 1-5 stars (5=government, 4=commercial, 3=community)
+    accuracy_rating: 5              # 1-5 technical accuracy rating
+    network_type: "government"      # "government", "commercial", "community", "research"
+
+  metadata:
+    description: "Service description"
+    stations: 100                   # Number of reference stations
+    coverage_area: "Geographic description"
+    last_verified: "2024-12-01"     # ISO date when verified
+    ntrip_version: "2.0"            # NTRIP protocol version: "1.0", "2.0", "mixed"
+    rtcm_formats: ["RTCM 3.3", "RTCM 3.2"]  # Supported RTCM message formats
+    constellations: ["GPS", "GLONASS", "Galileo", "BeiDou"]  # GNSS constellations
+    notes: "Additional technical details"
 ```
 
 ### Geographic Boundaries
