@@ -58,15 +58,16 @@ ntrip-atlas-data/         # Service database repository (THIS IS WHERE ALL REAL 
 ```
 
 **⚠️ CURRENT IMPLEMENTATION STATUS**:
-- Main repo `data/` directory: 5 hierarchical-format services for development/testing
-- Service data repo submodule `data-repo/`: ALL 33+ production services (includes legacy format services)
-- Main repo uses hierarchical coverage schema (our current implementation)
-- Data repo contains mix of legacy format + our hierarchical improvements
-- Build process uses main repo `data/` for now (5 services with hierarchical coverage)
+- Main repo `data/` directory: 5 services using current schema format with hierarchical coverage
+- Service data repo submodule `data-repo/`: ALL 33 services using different schema format
+- Our generator expects: `quality: {network_type: "government"}`
+- Data repo services use: `organization_type: "government"` (different field names)
+- Build process uses main repo `data/` for now (5 services work with current generator)
 
-**⚠️ TODO - Schema Migration**:
-- Need to migrate all 33 services to hierarchical coverage format
-- Or update generator to handle both legacy and hierarchical schemas
+**⚠️ TODO - Schema Standardization**:
+- Standardize all 33 services to use consistent YAML schema format
+- Add hierarchical coverage fields to all services in data-repo
+- Update generator to handle the unified schema format
 - This will enable full 33-service database generation
 
 ### Geographic Coverage Strategy

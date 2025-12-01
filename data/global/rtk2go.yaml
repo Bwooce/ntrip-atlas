@@ -15,7 +15,7 @@ service:
       lon_min: -180.0
       lon_max: 180.0
 
-    # Hierarchical coverage using Brad Fitzpatrick bitmap approach
+    # Hierarchical coverage levels
     hierarchical:
       continental: 4    # Strong coverage at continental level (800+ stations)
       regional: 4       # Strong regional coverage in developed areas

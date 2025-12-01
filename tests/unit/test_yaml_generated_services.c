@@ -102,7 +102,7 @@ void test_service_coverage() {
         const char* location;
         const char* expected_hostname;  // One service we expect to find
     } test_locations[] = {
-        {-33.8688, 151.2093, "Sydney, Australia", "auscors.ga.gov.au"},
+        {-33.8688, 151.2093, "Sydney, Australia", "ntrip.data.gnss.ga.gov.au"},
         {-41.2865, 174.7762, "Wellington, NZ", "positionz-rt.linz.govt.nz"},
         {0.0, 0.0, "Null Island", "rtk2go.com"},  // Global services should cover
     };

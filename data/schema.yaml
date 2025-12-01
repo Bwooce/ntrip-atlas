@@ -78,7 +78,7 @@ service:
               minimum: -180.0
               maximum: 180.0
 
-        # Hierarchical coverage areas (Brad Fitzpatrick bitmap approach)
+        # Hierarchical coverage levels
         hierarchical:
           type: object
           description: "Multi-level coverage areas for efficient bitmap storage"
