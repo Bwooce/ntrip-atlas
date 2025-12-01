@@ -177,6 +177,8 @@ def generate_service_array(services: List[Dict[str, Any]], coverage_data: dict, 
             flags.append("NTRIP_FLAG_REQUIRES_REG")
         if not auth['required']:
             flags.append("NTRIP_FLAG_FREE_ACCESS")
+        if service.get('country') == 'GLOBAL':
+            flags.append("NTRIP_FLAG_GLOBAL_SERVICE")
 
         flag_value = " | ".join(flags) if flags else "0"
 

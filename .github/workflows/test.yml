@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Install dependencies
       run: |
@@ -40,6 +42,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -55,12 +59,73 @@ jobs:
         # Test validator functionality by running without arguments (shows usage)
         python3 tools/validators/service_validator.py 2>&1 | grep -q "Usage:" && echo "YAML validator tool is functional"
 
+    - name: Initialize and update submodules
+      run: |
+        git submodule update --init --recursive
+
+    - name: Test YAML to C generation
+      run: |
+        # Test that YAML services can be generated into C code without errors
+        if [ -f tools/generators/yaml_to_c.py ]; then
+          echo "Testing YAML to C generation..."
+          python3 tools/generators/yaml_to_c.py data-repo/ /tmp/test_generated/
+          echo "✅ YAML to C generation successful"
+
+          # Check that generated files exist and are reasonable size
+          if [ -f /tmp/test_generated/ntrip_generated_services.c ]; then
+            GENERATED_SIZE=$(wc -c < /tmp/test_generated/ntrip_generated_services.c)
+            echo "Generated C file size: ${GENERATED_SIZE} bytes"
+
+            # Fail if generated file is unreasonably large (>1MB = potential memory issue)
+            if [ "$GENERATED_SIZE" -gt 1048576 ]; then
+              echo "❌ ERROR: Generated C file too large (${GENERATED_SIZE} bytes > 1MB)"
+              echo "This may cause ESP32 memory issues. Review service database size."
+              exit 1
+            fi
+
+            # Fail if generated file is too small (likely generation failure)
+            if [ "$GENERATED_SIZE" -lt 1000 ]; then
+              echo "❌ ERROR: Generated C file too small (${GENERATED_SIZE} bytes < 1KB)"
+              echo "Generation may have failed. Check YAML files and generator."
+              exit 1
+            fi
+
+            echo "✅ Generated file size within acceptable range"
+          else
+            echo "❌ ERROR: Generated C file not found"
+            exit 1
+          fi
+        else
+          echo "⚠️  YAML generator not found - skipping generation test"
+        fi
+
+    - name: Validate service database size
+      run: |
+        # Count total services across all regions
+        TOTAL_SERVICES=$(find data-repo/ -name "*.yaml" -not -path "*/excluded_*" -not -name "schema.yaml" -not -name "README*" | wc -l)
+        echo "Total NTRIP services in database: ${TOTAL_SERVICES}"
+
+        # Warn if approaching ESP32 memory limits (estimate ~1KB per service)
+        if [ "$TOTAL_SERVICES" -gt 150 ]; then
+          echo "⚠️  WARNING: Large service database (${TOTAL_SERVICES} services)"
+          echo "Consider memory optimization for ESP32 deployment"
+        fi
+
+        # Count by region for reporting
+        echo "Services by region:"
+        echo "  EMEA: $(find data-repo/emea data-repo/EMEA -name "*.yaml" -not -name "excluded*" 2>/dev/null | wc -l || echo 0)"
+        echo "  AMER: $(find data-repo/americas data-repo/AMER -name "*.yaml" -not -name "excluded*" 2>/dev/null | wc -l || echo 0)"
+        echo "  APAC: $(find data-repo/apac data-repo/APAC -name "*.yaml" -not -name "excluded*" 2>/dev/null | wc -l || echo 0)"
+        echo "  Global: $(find data-repo/global -name "*.yaml" -not -name "excluded*" 2>/dev/null | wc -l || echo 0)"
+
   lint:
     runs-on: ubuntu-latest
     name: Code Quality
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Check C code formatting
       run: |

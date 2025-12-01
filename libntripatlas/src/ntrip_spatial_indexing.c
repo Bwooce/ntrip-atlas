@@ -17,8 +17,8 @@
 #include <math.h>
 
 // Spatial indexing constants
-#define SPATIAL_INDEX_MAX_TILES 256
-#define SPATIAL_INDEX_MAX_SERVICES_PER_TILE 16
+#define SPATIAL_INDEX_MAX_TILES 4096   // Regional services only (31 services) - globals handled separately
+#define SPATIAL_INDEX_MAX_SERVICES_PER_TILE 64  // Regional services only - globals handled separately
 #define SPATIAL_INDEX_MAX_LEVELS 5
 
 // Tile key encoding constants (32-bit)
@@ -236,7 +236,7 @@ ntrip_atlas_error_t ntrip_atlas_add_service_to_tile(
     if (!tile) {
         // Create new tile
         if (g_spatial_index.tile_count >= SPATIAL_INDEX_MAX_TILES) {
-            return NTRIP_ATLAS_ERROR_INVALID_PARAM; // No space for more tiles
+            return NTRIP_ATLAS_ERROR_SPATIAL_INDEX_FULL; // No space for more tiles
         }
 
         // Find insertion point to maintain sorted order
@@ -274,7 +274,7 @@ ntrip_atlas_error_t ntrip_atlas_add_service_to_tile(
         return NTRIP_ATLAS_SUCCESS;
     }
 
-    return NTRIP_ATLAS_ERROR_INVALID_PARAM; // Tile full
+    return NTRIP_ATLAS_ERROR_TILE_FULL; // Tile full
 }
 
 /**

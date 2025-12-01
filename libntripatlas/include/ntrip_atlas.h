@@ -67,7 +67,9 @@ typedef enum {
     NTRIP_ATLAS_ERROR_NO_DISCOVERY_INDEX = -17,  // Discovery index not loaded
     NTRIP_ATLAS_ERROR_NO_ENDPOINTS = -18,        // Service endpoints not available
     NTRIP_ATLAS_ERROR_NO_METADATA = -19,         // Service metadata not available
-    NTRIP_ATLAS_ERROR_LOAD_FAILED = -20          // Data loading operation failed
+    NTRIP_ATLAS_ERROR_LOAD_FAILED = -20,         // Data loading operation failed
+    NTRIP_ATLAS_ERROR_SPATIAL_INDEX_FULL = -21,  // Maximum number of tiles reached
+    NTRIP_ATLAS_ERROR_TILE_FULL = -22            // Maximum services per tile reached
 } ntrip_atlas_error_t;
 
 /**
@@ -79,6 +81,14 @@ typedef enum {
     NTRIP_NETWORK_COMMUNITY = 2,
     NTRIP_NETWORK_RESEARCH = 3
 } ntrip_network_type_t;
+
+/**
+ * Payment priority configuration for service discovery
+ */
+typedef enum {
+    NTRIP_PAYMENT_PRIORITY_FREE_FIRST = 0,  // Try free services first, paid services as fallback
+    NTRIP_PAYMENT_PRIORITY_PAID_FIRST = 1   // Try paid services first, free services as fallback
+} ntrip_payment_priority_t;
 
 /**
  * Authentication methods
@@ -231,6 +241,8 @@ typedef struct __attribute__((packed)) {
 #define NTRIP_FLAG_AUTH_DIGEST      (1 << 2)  // Digest authentication
 #define NTRIP_FLAG_REQUIRES_REG     (1 << 3)  // Requires registration
 #define NTRIP_FLAG_FREE_ACCESS      (1 << 4)  // Free/community access
+#define NTRIP_FLAG_GLOBAL_SERVICE   (1 << 5)  // Global coverage service - skip spatial indexing
+#define NTRIP_FLAG_PAID_SERVICE     (1 << 6)  // Commercial paid service - check credentials
 
 /**
  * Geographic blacklisting structures for avoiding repeated queries
@@ -439,6 +451,51 @@ ntrip_atlas_error_t ntrip_atlas_get_credentials(const ntrip_credential_store_t* 
  */
 bool ntrip_atlas_is_service_accessible(const ntrip_service_config_t* service,
                                       const ntrip_credential_store_t* store);
+
+/**
+ * Payment Priority Configuration Functions
+ */
+
+/**
+ * Set global payment priority configuration
+ * @param priority Payment priority mode (free-first vs paid-first)
+ * @return Success/error status
+ */
+ntrip_atlas_error_t ntrip_atlas_set_payment_priority(ntrip_payment_priority_t priority);
+
+/**
+ * Get current payment priority configuration
+ * @return Current payment priority mode
+ */
+ntrip_payment_priority_t ntrip_atlas_get_payment_priority(void);
+
+/**
+ * Check if a service requires credentials and if we have them
+ * @param service Service to check
+ * @param store Credential store to check against
+ * @return true if service is accessible (free or has credentials)
+ */
+bool ntrip_atlas_is_service_usable(const ntrip_service_compact_t* service,
+                                  const ntrip_credential_store_t* store);
+
+/**
+ * Filter services by payment priority and credential availability
+ * @param services Input service array
+ * @param service_count Number of input services
+ * @param store Credential store for paid service validation
+ * @param priority Payment priority mode
+ * @param filtered_services Output filtered service array
+ * @param max_filtered Maximum size of output array
+ * @return Number of usable services in priority order
+ */
+size_t ntrip_atlas_filter_services_by_payment_priority(
+    const ntrip_service_compact_t* services,
+    size_t service_count,
+    const ntrip_credential_store_t* store,
+    ntrip_payment_priority_t priority,
+    ntrip_service_compact_t* filtered_services,
+    size_t max_filtered
+);
 
 /**
  * Compact Service Runtime Optimization Functions
