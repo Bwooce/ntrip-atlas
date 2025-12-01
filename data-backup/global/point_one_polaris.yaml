@@ -1,0 +1,41 @@
+service:
+  id: "point_one_polaris"
+  provider: "Point One Navigation"
+  country: "US"
+
+  endpoints:
+    - hostname: "polaris.pointonenav.com"
+      port: 2101
+      ssl: false
+
+  coverage:
+    bounding_box:
+      lat_min: -90.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 180.0
+
+    # Hierarchical coverage for commercial global network
+    hierarchical:
+      continental: 5    # Excellent continental coverage (1400+ stations)
+      regional: 5       # Excellent regional coverage in major markets
+      national: 4       # Strong national coverage in key countries
+      state: 4          # Good state/province coverage
+      local: 3          # Moderate local coverage (commercial focus)
+
+  authentication:
+    method: "basic"
+    required: true
+    registration_required: true
+    registration_url: "https://app.pointonenav.com"
+
+  quality:
+    reliability_rating: 4  # Commercial
+    accuracy_rating: 4     # High commercial quality
+    network_type: "commercial"
+
+  metadata:
+    description: "Global commercial NTRIP network with enterprise SLA"
+    stations: 1400
+    coverage_area: "Worldwide"
+    last_verified: "2024-11-30"

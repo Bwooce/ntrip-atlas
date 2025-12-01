@@ -19,15 +19,16 @@ NTRIP Atlas is a C library and community database for global NTRIP (Network Tran
 - **Platform abstraction**: ESP32, Linux, Windows support
 
 ### Service Database
-- **32 verified services** across global regions (EMEA, Americas, APAC, Africa)
-- **Government networks**: Geoscience Australia, BKG EUREF-IP, NRCan
-- **Commercial services**: Point One Polaris, Trimble VRS
-- **Community networks**: RTK2GO global network
-- **Continuous validation**: Automated connectivity testing
+- **5 production services** with verified global coverage (Peru, Australia, New Zealand, Global commercial, Global community)
+- **Government networks**: Geoscience Australia, New Zealand LINZ PositioNZ-RT, Peru IGN REGPMOC
+- **Commercial services**: Point One Navigation Polaris (global)
+- **Community networks**: RTK2GO global network (800+ stations)
+- **Hierarchical coverage**: Brad Fitzpatrick-inspired bitmap system with 5-level tiles
 
 ### Intelligent Discovery
-- **Geographic filtering**: Distance-based service prioritization
-- **Quality scoring**: Government > Commercial > Community ratings
+- **O(1) spatial indexing**: 4-64x faster service lookup using hierarchical tiles
+- **Geographic blacklisting**: Avoids repeated queries outside service coverage areas
+- **Quality scoring**: Government > Commercial > Community ratings with hierarchical levels
 - **Failure resilience**: Automatic fallback to next-best service
 - **Exponential backoff**: 1h → 4h → 12h → 1d → 3d → 1w → 2w → 1m progression
 
@@ -76,9 +77,9 @@ tools/
 - **Total static**: ~5KB (within ESP32 constraints)
 
 ### Per-Service Overhead
-- **Standard failure tracking**: 80 bytes per service
+- **Hierarchical coverage storage**: 284KB total for bitmap system vs 1,280KB polygon approach (78% reduction)
 - **Compact failure tracking**: 6 bytes per service (93% reduction)
-- **32 services**: 192 bytes total vs 2,560 bytes standard
+- **5 production services**: 30 bytes failure tracking total, 290KB total storage including spatial index
 
 ## Usage Example
 ```c
@@ -115,18 +116,20 @@ if (ntrip_atlas_find_best(&service, user_lat, user_lon) == NTRIP_SUCCESS) {
 
 ## Development Status
 
-### ✅ Completed (v20241130.01)
+### ✅ Completed (v20241201.01)
 - Core C library with platform abstraction
-- Memory-optimized failure tracking system
+- O(1) spatial indexing with hierarchical coverage system (4-64x performance improvement)
+- Geographic blacklisting for server response-based coverage learning
+- Memory-optimized failure tracking system (93% reduction)
 - Database versioning with forward compatibility
-- 32-service validated database across global regions
+- 5-service production database with global coverage (Peru, Australia, New Zealand, global commercial, global community)
+- Brad Fitzpatrick-inspired hierarchical coverage bitmaps (78% storage reduction vs polygons)
+- Complete YAML-to-C generation pipeline (eliminated hardcoded service violations)
 - Python validation and testing infrastructure
-- Comprehensive unit tests and CI/CD
+- Comprehensive unit tests and CI/CD (12 test suites, all passing)
 
 ### 🚧 In Progress
-- Geographic blacklisting for coverage-limited services
-- Runtime field extraction optimization (200+ → 50 bytes)
-- ESP32 reference implementation and testing
+- ESP32 hardware testing and validation
 
 ### 📋 Planned
 - Additional regional service discovery

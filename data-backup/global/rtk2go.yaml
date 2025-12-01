@@ -1,0 +1,40 @@
+service:
+  id: "rtk2go_global"
+  provider: "RTK2GO Community Network"
+  country: "US"  # Primary coordination from US
+
+  endpoints:
+    - hostname: "rtk2go.com"
+      port: 2101
+      ssl: false
+
+  coverage:
+    bounding_box:
+      lat_min: -90.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 180.0
+
+    # Hierarchical coverage using Brad Fitzpatrick bitmap approach
+    hierarchical:
+      continental: 4    # Strong coverage at continental level (800+ stations)
+      regional: 4       # Strong regional coverage in developed areas
+      national: 3       # Good national coverage (varies by country)
+      state: 3          # Good state/province coverage where available
+      local: 2          # Limited local coverage (depends on community)
+
+  authentication:
+    method: "none"
+    required: false
+    registration_required: false
+
+  quality:
+    reliability_rating: 3  # Community
+    accuracy_rating: 3     # Good community quality
+    network_type: "community"
+
+  metadata:
+    description: "Global community NTRIP network with 800+ stations"
+    stations: 800
+    coverage_area: "Worldwide"
+    last_verified: "2024-11-30"

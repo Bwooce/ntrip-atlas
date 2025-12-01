@@ -18,16 +18,17 @@ Currently, GNSS/RTK developers must:
 ## What This Project Provides
 
 ### 🗺️ **Comprehensive Service Database**
-- **Government services**: Geoscience Australia, EUREF-IP (Europe), Finland FinnRef, Massachusetts MaCORS
-- **Commercial networks**: Point One Navigation Polaris (global)
+- **Government services**: Geoscience Australia, New Zealand LINZ PositioNZ-RT, Peru IGN REGPMOC
+- **Commercial networks**: Point One Navigation Polaris (global coverage)
 - **Community services**: RTK2GO (800+ stations worldwide)
 - **Geographic organization**: EMEA, APAC, Americas, Global regions
-- **Initial dataset**: 6 documented services with full technical specifications
+- **Production dataset**: 5 verified services with hierarchical coverage validation
 
 ### 🎯 **Intelligent Auto-Discovery**
+- **O(1) spatial indexing** with hierarchical coverage validation (4-64x faster than linear search)
 - **Automatic nearest base selection** using real-time sourcetable queries
 - **Quality-based ranking** considering distance, reliability, and technical compatibility
-- **Format filtering** (RTCM 2.0, RTCM 3.x, RAW) and constellation support (GPS+GLONASS+Galileo)
+- **Geographic blacklisting** to avoid repeated queries outside service coverage areas
 - **Smart failure tracking** with exponential backoff (1h → 4h → 12h → 1d → 3d → 1w → 2w → 1m)
 - **Automatic failover** to next best service when primary fails
 

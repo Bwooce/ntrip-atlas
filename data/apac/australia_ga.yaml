@@ -1,0 +1,40 @@
+service:
+  id: "geoscience_australia"
+  provider: "Geoscience Australia"
+  country: "AU"
+
+  endpoints:
+    - hostname: "auscors.ga.gov.au"
+      port: 2101
+      ssl: false
+
+  coverage:
+    bounding_box:
+      lat_min: -45.0
+      lat_max: -10.0
+      lon_min: 110.0
+      lon_max: 160.0
+
+    # Hierarchical coverage for Australian government CORS network
+    hierarchical:
+      # No continental coverage - Australia only
+      regional: 5       # Excellent regional coverage across Australia/Oceania
+      national: 5       # Excellent national coverage within Australia
+      state: 5          # Excellent state coverage (all Australian states)
+      local: 4          # Strong local coverage (250 stations)
+
+  authentication:
+    method: "none"
+    required: false
+    registration_required: false
+
+  quality:
+    reliability_rating: 5  # Government
+    accuracy_rating: 5     # Highest government quality
+    network_type: "government"
+
+  metadata:
+    description: "Australian government CORS network"
+    stations: 250
+    coverage_area: "Australia and territories"
+    last_verified: "2024-11-30"

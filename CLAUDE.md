@@ -36,16 +36,38 @@ All platform access goes through function pointers in `ntrip_platform_t`.
 
 ## Architecture Reminders
 
-### Data Organization
+### Repository Structure (CRITICAL)
+**ALL SERVICE DATA belongs in the separate ntrip-atlas-data repository!**
+
 ```
-data/
-├── VERSION               # YYYYMMDD.sequence format
-├── global/              # RTK2go, IGS network
-├── emea/               # Europe, Middle East, Africa
-├── apac/               # Asia Pacific
-├── americas/           # North & South America
-└── africa/             # African regional services
+ntrip-atlas/              # Main library repository
+├── libntripatlas/        # Core C library
+├── tools/                # Development tools
+├── tests/                # Unit tests
+└── data/                 # ONLY for development/testing (5 services max)
+
+ntrip-atlas-data/         # Service database repository (THIS IS WHERE ALL REAL DATA GOES)
+├── data/
+│   ├── VERSION           # YYYYMMDD.sequence format
+│   ├── global/           # RTK2go, IGS network
+│   ├── emea/            # Europe, Middle East, Africa (10+ services)
+│   ├── apac/            # Asia Pacific (3+ services)
+│   ├── americas/        # North & South America (12+ services)
+│   └── africa/          # African regional services (1+ services)
+└── README.md             # Service contribution guidelines
 ```
+
+**⚠️ CURRENT IMPLEMENTATION STATUS**:
+- Main repo `data/` directory: 5 hierarchical-format services for development/testing
+- Service data repo submodule `data-repo/`: ALL 33+ production services (includes legacy format services)
+- Main repo uses hierarchical coverage schema (our current implementation)
+- Data repo contains mix of legacy format + our hierarchical improvements
+- Build process uses main repo `data/` for now (5 services with hierarchical coverage)
+
+**⚠️ TODO - Schema Migration**:
+- Need to migrate all 33 services to hierarchical coverage format
+- Or update generator to handle both legacy and hierarchical schemas
+- This will enable full 33-service database generation
 
 ### Geographic Coverage Strategy
 Services YAML should include geographic bounding boxes:

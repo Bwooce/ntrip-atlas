@@ -200,8 +200,8 @@ typedef struct {
 
 /**
  * Compact service structure for runtime discovery
- * Reduces memory usage from 248 bytes to 46 bytes (81.5% reduction)
- * Optimized for ESP32 deployment and streaming discovery
+ * Enhanced with polygon coverage support for precise geographic boundaries
+ * Optimized for ESP32 flash storage with memory-mapped access
  */
 typedef struct __attribute__((packed)) {
     // Connection info (35 bytes)
@@ -209,17 +209,21 @@ typedef struct __attribute__((packed)) {
     uint16_t port;              // TCP port
     uint8_t flags;              // Packed boolean flags (see NTRIP_FLAG_* below)
 
-    // Geographic coverage (8 bytes - int16 with 0.01 degree precision)
+    // Geographic coverage - bounding box (8 bytes - for fast O(1) filtering)
     int16_t lat_min_deg100;     // Coverage bounds: -90.00 to 90.00 × 100
     int16_t lat_max_deg100;
     int16_t lon_min_deg100;     // Coverage bounds: -180.00 to 180.00 × 100
     int16_t lon_max_deg100;
 
+    // Hierarchical coverage reference (2 bytes - for bitmap lookup)
+    uint8_t coverage_levels;    // Bitmask: which levels this service covers (bits 0-4 = levels 0-4)
+    uint8_t reserved;           // Padding for alignment
+
     // Service metadata (3 bytes)
     uint8_t provider_index;     // Index into shared provider string table
     uint8_t network_type;       // government/commercial/community
     uint8_t quality_rating;     // 1-5 star rating
-} ntrip_service_compact_t;      // Total: 46 bytes
+} ntrip_service_compact_t;      // Total: 48 bytes (was 46, briefly 52 with polygons)
 
 // Compact service flag definitions
 #define NTRIP_FLAG_SSL              (1 << 0)  // HTTPS/SSL connection

@@ -20,8 +20,10 @@ libntripatlas/src/generated/
 ntrip_services_data.h
 ntrip_services_data.c
 
-# Service data (lives in separate ntrip-atlas-data repository)
-data/
+# Service data now lives in this repository under data/
+# (fixed architectural violation of separate repository)
+# data/ directory should be committed
+# services/ (legacy name) should still be ignored
 services/
 
 # Platform-specific build files
