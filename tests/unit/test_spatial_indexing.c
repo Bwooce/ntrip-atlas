@@ -479,7 +479,7 @@ bool test_edge_cases() {
     ntrip_tile_key_t test_tile = ntrip_atlas_encode_tile_key(0, 0, 0);
 
     // Add maximum services to one tile
-    for (uint8_t i = 0; i < 16; i++) {  // SPATIAL_INDEX_MAX_SERVICES_PER_TILE
+    for (uint8_t i = 0; i < 64; i++) {  // SPATIAL_INDEX_MAX_SERVICES_PER_TILE = 64
         result = ntrip_atlas_add_service_to_tile(test_tile, i);
         if (result != NTRIP_ATLAS_SUCCESS) {
             printf("  ❌ Failed to add service %d (within capacity)\\n", i);
@@ -488,9 +488,10 @@ bool test_edge_cases() {
     }
 
     // Try to add one more service (should fail)
-    result = ntrip_atlas_add_service_to_tile(test_tile, 16);
-    if (result != NTRIP_ATLAS_ERROR_INVALID_PARAM) {
-        printf("  ❌ Should reject service addition when tile is full\\n");
+    result = ntrip_atlas_add_service_to_tile(test_tile, 64);
+    if (result != NTRIP_ATLAS_ERROR_TILE_FULL) {
+        printf("  ❌ Should reject service addition when tile is full (got error %d, expected %d)\\n",
+               result, NTRIP_ATLAS_ERROR_TILE_FULL);
         return false;
     }
 
