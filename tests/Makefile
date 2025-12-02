@@ -10,7 +10,7 @@ TEST_MEMORY = memory
 TEST_INTEGRATION = integration
 
 # Test executables
-UNIT_TESTS = $(TEST_UNIT)/test_distance $(TEST_UNIT)/test_compact_failures $(TEST_UNIT)/test_database_versioning $(TEST_UNIT)/test_credential_management $(TEST_UNIT)/test_compact_services $(TEST_UNIT)/test_geographic_blacklist $(TEST_UNIT)/test_geographic_filtering $(TEST_UNIT)/test_spatial_indexing $(TEST_UNIT)/test_yaml_generated_services
+UNIT_TESTS = $(TEST_UNIT)/test_distance $(TEST_UNIT)/test_compact_failures $(TEST_UNIT)/test_database_versioning $(TEST_UNIT)/test_credential_management $(TEST_UNIT)/test_compact_services $(TEST_UNIT)/test_geographic_blacklist $(TEST_UNIT)/test_geographic_filtering $(TEST_UNIT)/test_spatial_indexing $(TEST_UNIT)/test_yaml_generated_services $(TEST_UNIT)/test_payment_priority
 MEMORY_TESTS = $(TEST_MEMORY)/test_esp32_memory
 INTEGRATION_TESTS =
 
@@ -54,6 +54,9 @@ $(TEST_UNIT)/test_spatial_indexing: $(TEST_UNIT)/test_spatial_indexing.c ../libn
 	$(CC) $(CFLAGS) -I../libntripatlas/include $^ -o $@ $(MATHLIB)
 
 $(TEST_UNIT)/test_yaml_generated_services: $(TEST_UNIT)/test_yaml_generated_services.c ../libntripatlas/src/generated/ntrip_generated_services.c ../libntripatlas/src/ntrip_geographic_filtering.c ../libntripatlas/src/ntrip_spatial_indexing.c ../libntripatlas/src/ntrip_spatial_geographic.c
+	$(CC) $(CFLAGS) -I../libntripatlas/include -I../libntripatlas/src/generated $^ -o $@ $(MATHLIB)
+
+$(TEST_UNIT)/test_payment_priority: $(TEST_UNIT)/test_payment_priority.c ../libntripatlas/src/ntrip_payment_priority.c ../libntripatlas/src/ntrip_credential_management.c ../libntripatlas/src/generated/ntrip_generated_services.c
 	$(CC) $(CFLAGS) -I../libntripatlas/include -I../libntripatlas/src/generated $^ -o $@ $(MATHLIB)
 
 $(TEST_MEMORY)/test_esp32_memory: $(TEST_MEMORY)/test_esp32_memory.c

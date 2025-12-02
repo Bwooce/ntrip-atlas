@@ -177,6 +177,25 @@ def generate_service_array(services: List[Dict[str, Any]], coverage_data: dict, 
             flags.append("NTRIP_FLAG_REQUIRES_REG")
         if not auth['required']:
             flags.append("NTRIP_FLAG_FREE_ACCESS")
+
+        # Determine if this is a paid service
+        network_type = quality.get('network_type', 'community')
+        pricing = service.get('metadata', {}).get('pricing', {})
+
+        # Service is paid if:
+        # 1. It's commercial network type AND requires auth AND registration, OR
+        # 2. Has explicit pricing indicating paid/subscription model
+        is_paid = False
+        if network_type == 'commercial' and auth.get('required', True) and auth.get('registration_required', False):
+            is_paid = True
+        elif any(key in pricing for key in ['subscription', 'commercial_subscription', 'commercial_rates', 'paid']):
+            is_paid = True
+        elif pricing.get('commercial_free') == False or pricing.get('government_free') == False:
+            is_paid = True
+
+        if is_paid:
+            flags.append("NTRIP_FLAG_PAID_SERVICE")
+
         if service.get('country') == 'GLOBAL':
             flags.append("NTRIP_FLAG_GLOBAL_SERVICE")
 

@@ -391,12 +391,89 @@ void test_quality_based_ordering() {
     printf("✅ Quality-based ordering within payment types working correctly\n");
 }
 
+/**
+ * Test hostname validation for placeholder domains
+ */
+void test_hostname_validation() {
+    printf("\nTest: Hostname Validation\n");
+    printf("=========================\n");
+
+    // Test service with placeholder hostname - should be unusable
+    ntrip_service_compact_t placeholder_service = {
+        .hostname = "register.example.com",
+        .port = 2101,
+        .flags = 0  // Free service
+    };
+
+    bool usable = ntrip_atlas_is_service_usable(&placeholder_service, NULL);
+    assert(!usable);
+    printf("✅ Service with register.example.com hostname correctly filtered out\n");
+
+    // Test service with contact-sales placeholder
+    ntrip_service_compact_t contact_service = {
+        .hostname = "contact-sales.example.com",
+        .port = 2101,
+        .flags = 0
+    };
+
+    usable = ntrip_atlas_is_service_usable(&contact_service, NULL);
+    assert(!usable);
+    printf("✅ Service with contact-sales.example.com hostname correctly filtered out\n");
+
+    // Test service with academic placeholder
+    ntrip_service_compact_t academic_service = {
+        .hostname = "academic.example.com",
+        .port = 2101,
+        .flags = 0
+    };
+
+    usable = ntrip_atlas_is_service_usable(&academic_service, NULL);
+    assert(!usable);
+    printf("✅ Service with academic.example.com hostname correctly filtered out\n");
+
+    // Test service with valid hostname - should be usable
+    ntrip_service_compact_t valid_service = {
+        .hostname = "ntrip.ign.gob.ar",
+        .port = 2101,
+        .flags = 0  // Free service
+    };
+
+    usable = ntrip_atlas_is_service_usable(&valid_service, NULL);
+    assert(usable);
+    printf("✅ Service with valid hostname correctly allowed\n");
+
+    // Test service with localhost - should be filtered
+    ntrip_service_compact_t localhost_service = {
+        .hostname = "localhost",
+        .port = 2101,
+        .flags = 0
+    };
+
+    usable = ntrip_atlas_is_service_usable(&localhost_service, NULL);
+    assert(!usable);
+    printf("✅ Service with localhost hostname correctly filtered out\n");
+
+    // Test service with empty hostname - should be filtered
+    ntrip_service_compact_t empty_service = {
+        .hostname = "",
+        .port = 2101,
+        .flags = 0
+    };
+
+    usable = ntrip_atlas_is_service_usable(&empty_service, NULL);
+    assert(!usable);
+    printf("✅ Service with empty hostname correctly filtered out\n");
+
+    printf("✅ Hostname validation prevents placeholder domains from being used\n");
+}
+
 int main() {
     printf("NTRIP Atlas Payment Priority Tests\n");
     printf("===================================\n");
 
     test_payment_priority_configuration();
     test_service_usability();
+    test_hostname_validation();
     test_free_first_priority();
     test_paid_first_priority();
     test_credential_checking_and_skipping();
@@ -406,6 +483,7 @@ int main() {
     printf("Payment priority configuration system working correctly:\n");
     printf("- ✅ FREE_FIRST: Free services prioritized, paid as fallback\n");
     printf("- ✅ PAID_FIRST: Paid services prioritized, free as fallback\n");
+    printf("- ✅ Hostname validation: Placeholder domains filtered out to prevent connection failures\n");
     printf("- ✅ Credential checking: Paid services skipped without credentials\n");
     printf("- ✅ Quality ordering: Higher quality services within same payment type prioritized\n");
     printf("- ✅ Configuration API: Payment priority can be configured at runtime\n");

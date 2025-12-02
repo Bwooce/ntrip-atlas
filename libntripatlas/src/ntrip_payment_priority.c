@@ -50,11 +50,36 @@ ntrip_payment_priority_t ntrip_atlas_get_payment_priority(void) {
 }
 
 /**
+ * Check if hostname is a placeholder that should be filtered out
+ */
+static bool is_placeholder_hostname(const char* hostname) {
+    if (!hostname) return true;
+
+    // Check for common placeholder domains
+    if (strstr(hostname, "example.com") != NULL) return true;
+    if (strstr(hostname, "register.example") != NULL) return true;
+    if (strstr(hostname, "contact-sales.example") != NULL) return true;
+    if (strstr(hostname, "academic.example") != NULL) return true;
+
+    // Check for obviously invalid hostnames
+    if (strlen(hostname) == 0) return true;
+    if (strcmp(hostname, "localhost") == 0) return true;
+    if (strcmp(hostname, "127.0.0.1") == 0) return true;
+
+    return false;
+}
+
+/**
  * Check if a service requires credentials and if we have them
  */
 bool ntrip_atlas_is_service_usable(const ntrip_service_compact_t* service,
                                   const ntrip_credential_store_t* store) {
     if (!service) return false;
+
+    // Filter out services with placeholder hostnames
+    if (is_placeholder_hostname(service->hostname)) {
+        return false;
+    }
 
     // If service doesn't require payment, it's always usable
     if (!(service->flags & NTRIP_FLAG_PAID_SERVICE)) {
