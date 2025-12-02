@@ -19,7 +19,7 @@ NTRIP Atlas is a C library and community database for global NTRIP (Network Tran
 - **Platform abstraction**: ESP32, Linux, Windows support
 
 ### Service Database
-- **135 production services** with verified global coverage across government, commercial, and community networks
+- **122 production services** with verified global coverage across government, commercial, and community networks
 - **Government networks**: 80+ verified entries including Geoscience Australia, BKG EUREF-IP, SIRGAS networks (Brazil, Chile, Colombia, Ecuador, Argentina)
 - **Commercial services**: Point One Polaris, HxGN SmartNet, Trimble VRSnow, TopNET Live with global coverage
 - **Community networks**: RTK2GO, GEODNET, Onocoy with distributed station coverage

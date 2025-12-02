@@ -21,8 +21,8 @@ Currently, GNSS/RTK developers must:
 - **Government services**: 80+ verified entries including Geoscience Australia, BKG EUREF-IP, SIRGAS networks (Brazil, Chile, Colombia, Ecuador, Argentina)
 - **Commercial networks**: Point One Polaris, HxGN SmartNet, Trimble VRSnow, TopNET Live
 - **Community services**: RTK2GO (800+ stations), GEODNET, Onocoy networks
-- **Geographic organization**: EMEA (62), AMER (45), APAC (22), Global (8) regions
-- **Production dataset**: 135 verified services with comprehensive coverage validation
+- **Geographic organization**: EMEA (55), AMER (42), APAC (19), Global (8) regions
+- **Production dataset**: 122 verified services with comprehensive coverage validation
 
 ### 🎯 **Intelligent Auto-Discovery**
 - **O(1) spatial indexing** with hierarchical coverage validation (4-64x faster than linear search)
