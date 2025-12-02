@@ -319,7 +319,7 @@ void test_service_discovery_ordering() {
     // Validate ordering
     assert(australian_found == 1);  // Australian service should be in local results
     assert(local_count > 0);        // Should find local services
-    assert(global_count == 5);      // Should have 5 global services (RTK2go, Point One, HxGN, IGS, Topcon)
+    assert(global_count == 7);      // Should have 7 global services (RTK2go, Point One, HxGN, IGS, Topcon, GEODNET, Onocoy)
 
     printf("\n✅ Service discovery ordering correct:\n");
     printf("  1. Try %zu local/regional services first (HIGHEST QUALITY)\n", local_count);

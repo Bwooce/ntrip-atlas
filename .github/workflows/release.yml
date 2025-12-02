@@ -30,7 +30,7 @@ jobs:
         tar -czf release/ntrip-atlas-${{ steps.version.outputs.version }}.tar.gz \
           --exclude='.git*' \
           --exclude='release' \
-          libntripatlas/ tools/ tests/ docs/ \
+          libntripatlas/ tools/ tests/ \
           README.md DESIGN.md LICENSE-CODE LICENSING.md
 
         # Create headers-only distribution for Arduino Library Manager

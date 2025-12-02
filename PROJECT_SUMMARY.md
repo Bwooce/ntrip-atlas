@@ -19,10 +19,10 @@ NTRIP Atlas is a C library and community database for global NTRIP (Network Tran
 - **Platform abstraction**: ESP32, Linux, Windows support
 
 ### Service Database
-- **5 production services** with verified global coverage (Peru, Australia, New Zealand, Global commercial, Global community)
-- **Government networks**: Geoscience Australia, New Zealand LINZ PositioNZ-RT, Peru IGN REGPMOC
-- **Commercial services**: Point One Navigation Polaris (global)
-- **Community networks**: RTK2GO global network (800+ stations)
+- **135 production services** with verified global coverage across government, commercial, and community networks
+- **Government networks**: 80+ verified entries including Geoscience Australia, BKG EUREF-IP, SIRGAS networks (Brazil, Chile, Colombia, Ecuador, Argentina)
+- **Commercial services**: Point One Polaris, HxGN SmartNet, Trimble VRSnow, TopNET Live with global coverage
+- **Community networks**: RTK2GO, GEODNET, Onocoy with distributed station coverage
 - **Hierarchical coverage**: Brad Fitzpatrick-inspired bitmap system with 5-level tiles
 
 ### Intelligent Discovery
